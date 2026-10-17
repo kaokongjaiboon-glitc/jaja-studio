@@ -401,10 +401,11 @@ private:
         const juce::File file (msg["path"].toString());
         const double endBeat = (double) msg.getProperty ("endBeat", 0.0), tail = (double) msg.getProperty ("tail", 3.0);
         const auto rid = msg["rid"];
-        juce::Thread::launch ([this, file, endBeat, tail, rid]
+        const juce::String onlyTrack = msg["track"].toString();   // stem export: one track at a time
+        juce::Thread::launch ([this, file, endBeat, tail, rid, onlyTrack]
         {
             juce::String err;
-            const bool ok = engine->bounce (file, endBeat, tail, [] (float p) { sendEvent (obj ({ { "ev", "bounce" }, { "progress", p } })); }, err);
+            const bool ok = engine->bounce (file, endBeat, tail, [] (float p) { sendEvent (obj ({ { "ev", "bounce" }, { "progress", p } })); }, err, onlyTrack);
             sendEvent (obj ({ { "ev", "reply" }, { "rid", rid }, { "ok", ok }, { "error", err }, { "path", file.getFullPathName() } }));
             bouncing = false;
         });

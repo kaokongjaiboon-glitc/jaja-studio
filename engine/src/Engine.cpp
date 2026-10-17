@@ -282,6 +282,32 @@ void Engine::setProject (const juce::var& project)
     {
         const juce::ScopedLock sl (lock);
         bpm = juce::jlimit (20.0, 400.0, (double) project.getProperty ("bpm", 96));
+        tempoMap.assign (1, { 0.0, bpm });
+        if (auto* tl = project["tempos"].getArray())
+        {
+            std::vector<std::pair<double, double>> ch;
+            for (auto& t : *tl) if ((double) t["b"] > 1e-9) ch.emplace_back ((double) t["b"], juce::jlimit (20.0, 400.0, (double) t["bpm"]));
+            std::sort (ch.begin(), ch.end());
+            for (auto& c : ch) tempoMap.push_back (c);
+        }
+        {
+            // signatures arrive as (bar index, num, den); store as (start beat, bar length in quarter beats)
+            std::vector<std::tuple<int, int, int>> sg;
+            if (auto* sl = project["sigs"].getArray())
+                for (auto& x : *sl) sg.emplace_back ((int) x["bar"], juce::jlimit (1, 32, (int) x["num"]), juce::jlimit (1, 32, (int) x["den"]));
+            std::sort (sg.begin(), sg.end());
+            if (sg.empty() || std::get<0> (sg.front()) != 0) sg.insert (sg.begin(), { 0, 4, 4 });
+            barMap.clear();
+            double startBeat = 0; int prevBar = 0; double prevLen = 4;
+            for (auto& [bar, num, den] : sg)
+            {
+                if (bar < prevBar) continue;
+                startBeat += (bar - prevBar) * prevLen;
+                prevLen = num * 4.0 / den; prevBar = bar;
+                if (! barMap.empty() && std::abs (barMap.back().first - startBeat) < 1e-9) barMap.back().second = prevLen;
+                else barMap.emplace_back (startBeat, prevLen);
+            }
+        }
         loopOn = (bool) project["loop"]["on"];
         loopStart = (double) project["loop"]["start"]; loopEnd = (double) project["loop"]["end"];
         metro = (bool) project.getProperty ("metro", false);
@@ -311,6 +337,18 @@ void Engine::setProject (const juce::var& project)
         sync (tracks, project["tracks"], 0);
         updateChannel (*master, project["master"], 2, keep);
         for (auto& [k, p] : plugins) if (! keep.count (k)) oldPlugins[k] = p;
+        maxLatency = 0;
+        for (auto& t : tracks)
+        {
+            int lat = t->instPlugin && t->instPlugin->instance ? t->instPlugin->instance->getLatencySamples() : 0;
+            for (auto& i : t->inserts) if (i->on && i->plugin && i->plugin->instance) lat += i->plugin->instance->getLatencySamples();
+            t->latency = juce::jlimit (0, (int) sr, lat);
+            maxLatency = juce::jmax (maxLatency, t->latency);
+        }
+        const size_t need = (size_t) juce::nextPowerOfTwo (maxLatency + maxBlock + 1);
+        for (auto& t : tracks)
+            if (maxLatency > t->latency && t->pdc[0].size() < need)
+                for (auto& d : t->pdc) d.assign (need, 0.0f);
         plugins = keep;
     }
     // 3. tidy up outside the lock
@@ -342,6 +380,61 @@ bool Engine::loadMedia (const juce::String& id, const juce::File& file, juce::St
 }
 
 //==============================================================================
+double Engine::bpmAt (double b) const
+{
+    double v = tempoMap.front().second;
+    for (auto& [tb, tv] : tempoMap) { if (tb <= b + 1e-9) v = tv; else break; }
+    return v;
+}
+
+double Engine::secAt (double b) const
+{
+    if (b <= 0) return b * 60.0 / tempoMap.front().second;
+    double s = 0, pb = 0, pv = tempoMap.front().second;
+    for (size_t i = 1; i < tempoMap.size(); ++i)
+    {
+        if (tempoMap[i].first >= b) break;
+        s += (tempoMap[i].first - pb) * 60.0 / pv;
+        pb = tempoMap[i].first; pv = tempoMap[i].second;
+    }
+    return s + (b - pb) * 60.0 / pv;
+}
+
+double Engine::nextTempoChange (double b) const
+{
+    for (auto& [tb, tv] : tempoMap) if (tb > b + 1e-9) return tb;
+    return 1.0e12;
+}
+
+bool Engine::isBarStart (double b) const
+{
+    if (b < 0) return std::abs (std::fmod (b, 4.0)) < 1e-6;
+    size_t i = 0;
+    while (i + 1 < barMap.size() && barMap[i + 1].first <= b + 1e-9) ++i;
+    const double rel = (b - barMap[i].first) / barMap[i].second;
+    return std::abs (rel - std::round (rel)) * barMap[i].second < 1e-6;
+}
+
+void Engine::applyPdc (Channel& c, int n)
+{
+    const int d = maxLatency - c.latency;
+    if (d <= 0 || c.pdc[0].empty()) return;
+    const int size = (int) c.pdc[0].size(), mask = size - 1;
+    if (d >= size) return;
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        auto* x = c.buf.getWritePointer (ch);
+        auto& line = c.pdc[ch];
+        int w = c.pdcPos;
+        for (int i = 0; i < n; ++i, w = (w + 1) & mask)
+        {
+            line[(size_t) w] = x[i];
+            x[i] = line[(size_t) ((w - d) & mask)];
+        }
+    }
+    c.pdcPos = (c.pdcPos + n) & mask;
+}
+
 void Engine::play (double fromBeat, double metronomeUntil)
 {
     const juce::ScopedLock sl (lock);
@@ -390,7 +483,7 @@ bool Engine::startRecord (const juce::Array<juce::var>& trackIds, double startBe
         take->file = folder.getChildFile ("Take " + stamp + " " + take->id + ".wav");
         take->inputs = inputs;
         take->startBeat = startBeat;
-        take->skip = juce::jmax (0, latencySamples);
+        take->skip = juce::jmax (0, latencySamples) + maxLatency;
         std::unique_ptr<juce::OutputStream> os = std::make_unique<juce::FileOutputStream> (take->file);
         if (! static_cast<juce::FileOutputStream*> (os.get())->openedOk()) { error = "cannot write " + take->file.getFullPathName(); return false; }
         juce::WavAudioFormat wav;
@@ -459,7 +552,7 @@ void Engine::sequence (Channel& c, int s0, int len, double b0, double bps)
             const double from = juce::jmax (b0, cl.start), to = juce::jmin (b1, cl.end);
             const int i0 = s0 + juce::jlimit (0, len, (int) std::llround ((from - b0) / bps));
             const int i1 = s0 + juce::jlimit (0, len, (int) std::llround ((to - b0) / bps));
-            juce::int64 src = (juce::int64) std::llround (cl.offsetSec * sr + (from - cl.start) / bps);
+            juce::int64 src = (juce::int64) std::llround ((cl.offsetSec + secAt (from) - secAt (cl.start)) * sr);
             const float* dl = d.getReadPointer (0); const float* dr = d.getReadPointer (juce::jmin (1, d.getNumChannels() - 1));
             for (int i = i0; i < i1; ++i, ++src)
                 if (src >= 0 && src < dn) { L[i] += dl[src] * cl.gain; R[i] += dr[src] * cl.gain; }
@@ -495,7 +588,7 @@ void Engine::renderClicks (int s0, int len, double b0, double bps)
         if (! (metro || b < clickUntil - 1e-9)) continue;
         const int pos = s0 + juce::jlimit (0, len - 1, (int) ((b - b0) / bps));
         const int bi = (int) std::llround (b);
-        clickFreq = (((bi % 4) + 4) % 4 == 0) ? 1760.0 : 1320.0;
+        clickFreq = isBarStart ((double) bi) ? 1760.0 : 1320.0;
         clickPhase = 0; clickAmp = 0.25f; clickLeft = (int) (0.05 * sr);
         clickDecay = std::pow (0.0001f / 0.25f, 1.0f / (float) (0.04 * sr));
         auto* d = clickBuf.getWritePointer (0);
@@ -544,7 +637,7 @@ void Engine::runInserts (Channel& c, int n)
 
 void Engine::mixChannel (Channel& c, juce::AudioBuffer<float>& dest, int n, bool anySolo, double atBeat)
 {
-    const bool gate = ! c.mute && ! (c.role == 0 && anySolo && ! c.solo);
+    const bool gate = ! c.mute && ! (c.role == 0 && (soloOverride.isNotEmpty() ? c.id != soloOverride : (anySolo && ! c.solo)));
     const bool pl = playing.load();
     const float v = (pl && c.autoVol && ! c.volPts.empty()) ? autoValue (c.volPts, atBeat) : c.vol;
     const float pan = (pl && c.autoPan && ! c.panPts.empty()) ? autoValue (c.panPts, atBeat) : c.pan;
@@ -646,13 +739,16 @@ void Engine::processChunk (const float* const* in, int numIn, float* const* out,
     }
 
     blockBeat = beat.load();
-    const double bps = bpm / 60.0 / sr;
+    const double bps = bpmAt (blockBeat) / 60.0 / sr;
     if (playing.load())
     {
         int s = 0; double b = blockBeat;
         while (s < n)
         {
+            const double bps = bpmAt (b) / 60.0 / sr;
             int len = n - s; bool wrap = false;
+            const double nt = nextTempoChange (b);
+            if (nt < b + len * bps) len = juce::jlimit (1, n - s, (int) std::ceil ((nt - b) / bps - 1e-9));
             if (loopOn && ! recording.load() && loopEnd > loopStart && b < loopEnd && b + len * bps >= loopEnd)
             {
                 len = juce::jlimit (1, n - s, (int) std::ceil ((loopEnd - b) / bps - 1e-9));
@@ -691,6 +787,7 @@ void Engine::processChunk (const float* const* in, int numIn, float* const* out,
         else c.synth.render (c.buf, c.midi, n);
         c.midi.clear();
         runInserts (c, n);
+        applyPdc (c, n);
     }
     bool anySolo = false;
     for (auto& t : tracks) anySolo = anySolo || t->solo;
@@ -776,12 +873,18 @@ std::shared_ptr<PluginSlot> Engine::findPlugin (const juce::String& key)
 juce::Optional<juce::AudioPlayHead::PositionInfo> Engine::getPosition() const
 {
     PositionInfo p;
-    p.setBpm (bpm);
+    p.setBpm (bpmAt (blockBeat));
     p.setTimeSignature (juce::AudioPlayHead::TimeSignature { 4, 4 });
     p.setPpqPosition (blockBeat);
-    p.setPpqPositionOfLastBarStart (std::floor (blockBeat / 4.0) * 4.0);
-    p.setTimeInSeconds (blockBeat * 60.0 / bpm);
-    p.setTimeInSamples ((juce::int64) (blockBeat * 60.0 / bpm * sr));
+    {
+        size_t i = 0;
+        while (i + 1 < barMap.size() && barMap[i + 1].first <= blockBeat + 1e-9) ++i;
+        const double bl = barMap[i].second, st = barMap[i].first + std::floor ((blockBeat - barMap[i].first) / bl) * bl;
+        p.setPpqPositionOfLastBarStart (blockBeat < 0 ? std::floor (blockBeat / 4.0) * 4.0 : st);
+        p.setTimeSignature (juce::AudioPlayHead::TimeSignature { (int) std::lround (bl), 4 });
+    }
+    p.setTimeInSeconds (secAt (blockBeat));
+    p.setTimeInSamples ((juce::int64) (secAt (blockBeat) * sr));
     p.setIsPlaying (playing.load());
     p.setIsRecording (recording.load());
     p.setIsLooping (loopOn);
@@ -790,7 +893,7 @@ juce::Optional<juce::AudioPlayHead::PositionInfo> Engine::getPosition() const
 }
 
 //==============================================================================
-bool Engine::bounce (const juce::File& file, double endBeat, double tailSeconds, std::function<void (float)> progress, juce::String& error)
+bool Engine::bounce (const juce::File& file, double endBeat, double tailSeconds, std::function<void (float)> progress, juce::String& error, const juce::String& onlyTrack)
 {
     file.deleteFile();
     std::unique_ptr<juce::OutputStream> os = std::make_unique<juce::FileOutputStream> (file);
@@ -823,8 +926,9 @@ bool Engine::bounce (const juce::File& file, double endBeat, double tailSeconds,
     clickLeft = 0;
     beat = 0; blockBeat = 0; playing = true;
 
-    const double spbSamples = 60.0 / bpm * sr;
-    const juce::int64 songLen = (juce::int64) std::ceil (endBeat * spbSamples), total = songLen + (juce::int64) (tailSeconds * sr);
+    soloOverride = onlyTrack;
+    for (auto& t : tracks) for (auto& d : t->pdc) std::fill (d.begin(), d.end(), 0.0f);
+    const juce::int64 songLen = (juce::int64) std::ceil (secAt (endBeat) * sr + maxLatency), total = songLen + (juce::int64) (tailSeconds * sr);
     juce::AudioBuffer<float> outBuf (2, maxBlock);
     juce::int64 pos = 0; int lastPct = -1;
     while (pos < total)
@@ -833,7 +937,11 @@ bool Engine::bounce (const juce::File& file, double endBeat, double tailSeconds,
         if (playing && pos + n > songLen) { playing = false; for (auto& t : tracks) releaseActive (*t, 0); }
         float* outs[2] { outBuf.getWritePointer (0), outBuf.getWritePointer (1) };
         processChunk (nullptr, 0, outs, 2, n);
-        writer->writeFromAudioSampleBuffer (outBuf, 0, n);
+        {
+            // plugin latency delays everything by maxLatency samples: drop that much from the start of the file
+            const int skip = (int) juce::jlimit ((juce::int64) 0, (juce::int64) n, (juce::int64) maxLatency - pos);
+            if (skip < n) writer->writeFromAudioSampleBuffer (outBuf, skip, n - skip);
+        }
         pos += n;
         const int pct = (int) (pos * 100 / juce::jmax ((juce::int64) 1, total));
         if (pct != lastPct && progress) { lastPct = pct; progress ((float) pct / 100.0f); }
@@ -843,6 +951,7 @@ bool Engine::bounce (const juce::File& file, double endBeat, double tailSeconds,
     resetAll (false);
     loopOn = wasLoop; metro = wasMetro; clickUntil = wasClick; beat = wasBeat; blockBeat = wasBeat; playing = wasPlaying && ! wasRec;
     takes = std::move (keepTakes);
+    soloOverride.clear();
     offline = false;
     return true;
 }

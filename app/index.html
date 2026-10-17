@@ -62,6 +62,10 @@ button { cursor: pointer; }
 .mb-status b { color: #8fd19e; font-weight: 500; }
 .menu-pop .chk { width: 16px; flex: none; color: #9fd0ff; }
 .menu-pop button:disabled { opacity: .4; background: transparent; cursor: default; }
+.tlist { display: flex; flex-direction: column; gap: 5px; }
+.tlist .trow { display: grid; grid-template-columns: 90px 1fr 26px; gap: 8px; align-items: center; font-size: 12.5px; }
+.tlist .trow .field { height: 26px; width: 100%; }
+.tlist .thead2 { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: .06em; }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 12.5px; max-height: 60vh; overflow-y: auto; }
 .keys kbd { font: 11.5px var(--mono); color: var(--lcd); background: #17181b; border: 1px solid #0c0d0f; border-radius: 4px; padding: 1px 6px; justify-self: start; }
 @media (max-width: 760px) { .mb-title, .mb-status { display: none; } .mb-brand { display: none; } .mb-items { overflow-x: auto; } }
@@ -138,7 +142,9 @@ body.no-bottom .bottom { display: none; }
 .ruler { position: sticky; top: 0; z-index: 4; height: 30px; background: linear-gradient(#55575b, #424448); border-bottom: 1px solid var(--line); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,.45); }
 .ruler .loopband { position: absolute; top: 2px; height: 8px; border-radius: 4px; background: linear-gradient(#77797d, #5d5f63); }
 .ruler .loopband.on { background: linear-gradient(#fbe783, #f0cf2c 60%, #c29f12); box-shadow: inset 0 1px 0 rgba(255,250,225,.7); }
-.ruler .bar { position: absolute; top: 12px; height: 18px; border-left: 1px solid #a4a7ac; padding-left: 3px; font: 10px/16px var(--mono); color: #f0f1f3; pointer-events: none; }
+.ruler .bar i { font-style: normal; color: #ffd36a; }
+.ruler .bar.chg { border-left-color: #ffd36a; }
+.ruler .bar { white-space: nowrap; position: absolute; top: 12px; height: 18px; border-left: 1px solid #a4a7ac; padding-left: 3px; font: 10px/16px var(--mono); color: #f0f1f3; pointer-events: none; }
 .thead { position: sticky; left: 0; z-index: 3; height: 58px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 6px; border-bottom: 1px solid #18191b; border-right: 1px solid var(--line); background: linear-gradient(#303134, #2a2b2e); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 3px 0 6px rgba(0,0,0,.4); cursor: pointer; }
 .thead.sel { background: linear-gradient(#4a4c51, #3d3f44); }
 .thead.autoh { height: 64px; background: linear-gradient(#26272a, #222326); cursor: default; flex-direction: column; align-items: stretch; justify-content: center; gap: 5px; padding: 0 8px 0 44px; }
@@ -162,6 +168,14 @@ body.no-bottom .bottom { display: none; }
 .playhead { position: absolute; top: 0; width: 1px; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.75); z-index: 2; pointer-events: none; }
 .playhead::before { content: ""; position: absolute; top: 0; left: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff; }
 .empty-hint { padding: 18px; color: var(--fg-3); }
+.arr-head { position: sticky; left: 0; top: 30px; z-index: 6; height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 8px; background: linear-gradient(#3a3c40, #2f3034); border-right: 1px solid var(--line); border-bottom: 1px solid #141517; font-size: 11px; color: var(--fg-2); }
+.arr-head b { font-weight: 600; flex: 1; }
+.arr-lane { position: sticky; top: 30px; z-index: 4; height: 24px; background: #26272a; border-bottom: 1px solid #141517; }
+.marker { position: absolute; top: 2px; height: 20px; display: flex; align-items: center; border-radius: 5px; color: #fff; font: 600 11px/1 var(--font); text-shadow: 0 1px 1px rgba(0,0,0,.5); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.6); cursor: grab; touch-action: none; overflow: hidden; }
+.marker .mname { padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; pointer-events: none; }
+.marker .mgrip { width: 7px; align-self: stretch; cursor: ew-resize; background: rgba(0,0,0,.2); }
+.marker.sel { outline: 2px solid #fff; outline-offset: -2px; }
+.marker.copy { opacity: .75; outline: 2px dashed #fff; }
 
 /* bottom panel */
 .bottom { position: relative; flex: 0 0 var(--bottom-h, 42vh); min-height: 220px; max-height: 75vh; display: flex; flex-direction: column; background: linear-gradient(#2c2d30, #1e1f22); border-top: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 -4px 10px rgba(0,0,0,.5); min-height: 0; }
@@ -274,7 +288,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
         <div><span class="v" id="lcdPos">001.1.1</span><span class="k">BAR&nbsp;BEAT&nbsp;16TH</span></div>
         <div class="lcd-time"><span class="v" id="lcdTime">0:00.0</span><span class="k">TIME</span></div>
         <div><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo (BPM)"><span class="k">TEMPO</span></div>
-        <div class="lcd-key"><span class="v" id="lcdKey" style="font-size:15px">C maj</span><span class="k">KEY&nbsp;·&nbsp;4/4</span></div>
+        <div class="lcd-key"><span class="v" id="lcdKey" style="font-size:15px">C maj</span><span class="k" id="lcdSig">KEY · 4/4</span></div>
       </div>
       <div class="grp modes">
         <button class="tbtn cycle" id="bCycle" title="Cycle วนเล่นช่วงสีเหลือง (C)" aria-label="Cycle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9.5V7a3 3 0 0 1 3-3h7M11 2l2 2-2 2M13 6.5V9a3 3 0 0 1-3 3H3M5 14l-2-2 2-2"/></svg></button>
@@ -295,6 +309,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
         <button class="vbtn" id="bSetup" title="Audio Setup ตั้งค่าเสียง / Audio Interface" aria-label="Audio Setup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></button>
       </div>
       <input type="file" id="fileAudio" accept="audio/*" multiple hidden>
+      <input type="file" id="fileMidi" accept=".mid,.midi,audio/midi" hidden>
       <input type="file" id="fileProj" accept=".zip,.json" hidden>
     </div>
     <div class="menu-pop" id="fileMenu" role="menu" hidden>
@@ -385,6 +400,16 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   </div>
   <label class="chk"><input type="checkbox" id="bFill" checked> ใส่ fill กลองท้ายทุก 4 บาร์</label>
   <div class="acts"><button class="btn" value="cancel">ยกเลิก</button><button class="btn primary" value="ok">สร้างบีต</button></div>
+</form></dialog>
+
+<dialog id="dlgTempo" style="width:min(520px, calc(100vw - 32px))"><form method="dialog" class="dlg">
+  <h2>Tempo &amp; Signature</h2>
+  <p>เปลี่ยนความเร็วหรือจังหวะ (เช่น 3/4, 6/8) กลางเพลงได้ ใส่เลขบาร์ที่ต้องการให้เปลี่ยน</p>
+  <div class="tlist" id="tempoRows"></div>
+  <button type="button" class="btn small" id="tempoAdd" style="align-self:flex-start">+ เปลี่ยน Tempo ที่บาร์ของหัวเล่น</button>
+  <div class="tlist" id="sigRows"></div>
+  <button type="button" class="btn small" id="sigAdd" style="align-self:flex-start">+ เปลี่ยนจังหวะ (Signature) ที่บาร์ของหัวเล่น</button>
+  <div class="acts"><button class="btn primary" value="ok">เสร็จ</button></div>
 </form></dialog>
 
 <dialog id="dlgHelp" style="width:min(560px, calc(100vw - 32px))"><form method="dialog" class="dlg">
@@ -685,7 +710,7 @@ function defaultAux() {
   ];
 }
 function migrate(p) {
-  p.v = 2; p.loop = p.loop || { on: false, start: 0, end: 16 };
+  p.v = 2; p.media = p.media || {}; p.markers = p.markers || []; p.loop = p.loop || { on: false, start: 0, end: 16 };
   p.master = Object.assign({ vol: 0.7071, fx: [newFx("limiter")] }, p.master || {}); if (!p.master.fx) p.master.fx = [newFx("limiter")];
   if (!p.aux) p.aux = defaultAux();
   for (const a of p.aux) { a.fx = a.fx || []; a.sends = {}; }
@@ -714,20 +739,66 @@ function demoProject() {
   pad.regions.push({ id: uid(), name: "Pad", start: 16, len: 16, loops: 1, notes: padProg.chords });
   pad.auto.on.vol = true; pad.auto.vol = [{ b: 16, v: 0.25 }, { b: 24, v: 0.6 }, { b: 32, v: 0.6 }];
   P.tracks.push(drums, keys, bass, pad);
+  P.markers = [{ id: uid(), name: "Verse", start: 0, len: 16, color: MARKER_COLORS[0] }, { id: uid(), name: "Chorus", start: 16, len: 16, color: MARKER_COLORS[3] }];
   ui.trackId = keys.id;
 }
 const trackById = (id) => P.tracks.find((t) => t.id === id);
 function findRegion(id) { for (const t of P.tracks) { const r = t.regions.find((x) => x.id === id); if (r) return { t, r }; } return null; }
-const spb = () => 60 / P.bpm;
+/* ---- tempo map (P.bpm at bar 1 + P.tempos [{b, bpm}]) and signature map (P.sigs [{bar, num, den}]); beats are quarter notes */
+const tempoChanges = () => (P.tempos || []).filter((t) => t.b > 1e-9).sort((a, b) => a.b - b.b);
+function bpmAt(b) { let v = P.bpm; for (const t of tempoChanges()) { if (t.b <= b + 1e-9) v = t.bpm; else break; } return v; }
+function secAt(b) {
+  if (b <= 0) return (b * 60) / P.bpm;
+  let s = 0, pb = 0, pv = P.bpm;
+  for (const t of tempoChanges()) { if (t.b >= b) break; s += ((t.b - pb) * 60) / pv; pb = t.b; pv = t.bpm; }
+  return s + ((b - pb) * 60) / pv;
+}
+function beatAtSec(sec) {
+  if (sec <= 0) return (sec * P.bpm) / 60;
+  let s = 0, pb = 0, pv = P.bpm;
+  for (const t of tempoChanges()) { const ds = ((t.b - pb) * 60) / pv; if (s + ds >= sec) break; s += ds; pb = t.b; pv = t.bpm; }
+  return pb + ((sec - s) * pv) / 60;
+}
+const beatsFor = (startBeat, seconds) => beatAtSec(secAt(startBeat) + seconds) - startBeat;
+const spb = () => 60 / bpmAt(T.playing ? currentBeat() : T.cursor);
+function sigList() {
+  const l = (P.sigs || []).filter((x) => x.bar >= 0).map((x) => ({ bar: Math.round(x.bar), num: x.num, den: x.den })).sort((a, b) => a.bar - b.bar);
+  if (!l.length || l[0].bar !== 0) l.unshift({ bar: 0, num: 4, den: 4 });
+  return l.filter((x, i) => i === 0 || x.bar !== l[i - 1].bar);
+}
+const barLen = (sg) => (sg.num * 4) / sg.den;
+/* segments: [{bar, beat, len, sig}] */
+function sigSegs() { const out = []; let beat = 0, prev = null; for (const sg of sigList()) { if (prev) beat += (sg.bar - prev.bar) * barLen(prev); out.push({ bar: sg.bar, beat, len: barLen(sg), sig: sg }); prev = sg; } return out; }
+function barStartBeat(bar) { const segs = sigSegs(); let sg = segs[0]; for (const x of segs) if (x.bar <= bar) sg = x; return sg.beat + (bar - sg.bar) * sg.len; }
+function barAt(b) {
+  if (b < 0) return { bar: Math.floor(b / 4), start: Math.floor(b / 4) * 4, len: 4, sig: { num: 4, den: 4 } };
+  const segs = sigSegs(); let sg = segs[0]; for (const x of segs) if (x.beat <= b + 1e-9) sg = x;
+  const k = Math.floor((b - sg.beat) / sg.len + 1e-9);
+  return { bar: sg.bar + k, start: sg.beat + k * sg.len, len: sg.len, sig: sg.sig };
+}
+const barFloor = (b) => barAt(b).start;
+const barCeil = (b) => { const a = barAt(b); return Math.abs(a.start - b) < 1e-9 ? b : a.start + a.len; };
+const barRound = (b) => { const a = barAt(b); return b - a.start < a.len / 2 ? a.start : a.start + a.len; };
+const isBarStart = (b) => Math.abs(barAt(b).start - b) < 1e-6;
 const rEnd = (r) => r.start + r.len * (r.loops || 1);
 const songEndBeats = () => Math.max(0, ...P.tracks.flatMap((t) => t.regions.map(rEnd)));
-const totalBars = () => Math.max(32, Math.ceil(songEndBeats() / 4) + 8);
+const totalBars = () => Math.max(32, barAt(Math.max(songEndBeats(), ...(P.markers || []).map((m) => m.start + m.len))).bar + 9);
 
 /* autosave + undo history */
 const LS_KEY = "jaja-studio-v1";
 let saveTimer;
-function autosave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => lsSet(LS_KEY, JSON.stringify(P)), 400); updateUndoBtns(); engPush(); }
-function loadAutosave() { const s = lsGet(LS_KEY); if (!s) return false; try { const p = JSON.parse(s); if (p && p.tracks) { P = migrate(p); return true; } } catch (e) {} return false; }
+const FS = window.jajaFS || null;
+const PROJ = { file: null, dirty: false, recent: [] };
+let PRELOADED = null, diskTimer;
+function autosave(keepClean) {
+  clearTimeout(saveTimer); saveTimer = setTimeout(() => lsSet(LS_KEY, JSON.stringify(P)), 400); updateUndoBtns(); engPush();
+  if (!keepClean) setDirty(true);
+  if (FS) { clearTimeout(diskTimer); diskTimer = setTimeout(() => FS.autosave(JSON.stringify({ P, file: PROJ.file, dirty: PROJ.dirty, time: Date.now() })), 1500); }
+}
+function setDirty(v) { if (PROJ.dirty !== v) { PROJ.dirty = v; FS?.setDirty(v); } }
+function loadAutosave() {
+  if (PRELOADED) { P = migrate(PRELOADED); PRELOADED = null; return true; }
+  const s = lsGet(LS_KEY); if (!s) return false; try { const p = JSON.parse(s); if (p && p.tracks) { P = migrate(p); return true; } } catch (e) {} return false; }
 const H = { undo: [], redo: [] };
 function mark() { H.undo.push(JSON.stringify(P)); if (H.undo.length > 120) H.undo.shift(); H.redo.length = 0; updateUndoBtns(); }
 function updateUndoBtns() { $("#bUndo").disabled = !H.undo.length; $("#bRedo").disabled = !H.redo.length; }
@@ -772,7 +843,7 @@ async function resetAudio() {
 const faderGain = (p) => p * p * 2;
 const gainDb = (g) => (g <= 0.00001 ? -Infinity : 20 * Math.log10(g));
 const fmtDb = (p) => { const d = gainDb(faderGain(p)); if (d === -Infinity) return "-inf"; if (Math.abs(d) < 0.05) return "0.0"; return (d > 0 ? "+" : "") + d.toFixed(1); };
-function gateOf(o, isTrack) { if (o.mute) return 0; if (isTrack && P.tracks.some((x) => x.solo) && !o.solo) return 0; return 1; }
+function gateOf(o, isTrack) { if (o.mute) return 0; if (isTrack && SOLO_OVERRIDE) return o.id === SOLO_OVERRIDE ? 1 : 0; if (isTrack && P.tracks.some((x) => x.solo) && !o.solo) return 0; return 1; }
 
 /* one channel: input -> inserts -> volume -> mute/solo gate -> pan -> meter -> dest, post-fader sends */
 function buildChannel(c, dest, obj, env, isTrack) {
@@ -871,35 +942,36 @@ function clickVoice(c, out, t, accent) { const o = c.createOscillator(), g = c.c
 
 /* schedule events in song beats [b0, b1) starting at context time t0 */
 function scheduleRange(env, b0, b1, t0) {
-  const sp = 60 / env.bpm;
+  const s0 = secAt(b0), tAt = (b) => t0 + secAt(b) - s0;
   for (const t of env.tracks) {
     const ch = env.mix.tracks.get(t.id); if (!ch) continue;
     const out = ch.in;
     // automation (read): ramp to the value at the end of this slice
-    if (t.auto.on.vol && t.auto.vol.length) { const v = autoValue(t.auto.vol, b1); if (env.first) ch.vol.gain.setValueAtTime(faderGain(autoValue(t.auto.vol, b0)), t0); ch.vol.gain.linearRampToValueAtTime(faderGain(v), t0 + (b1 - b0) * sp); }
-    if (t.auto.on.pan && t.auto.pan.length) { const v = autoValue(t.auto.pan, b1); if (env.first) ch.pan.pan.setValueAtTime(autoValue(t.auto.pan, b0), t0); ch.pan.pan.linearRampToValueAtTime(v, t0 + (b1 - b0) * sp); }
+    if (t.auto.on.vol && t.auto.vol.length) { const v = autoValue(t.auto.vol, b1); if (env.first) ch.vol.gain.setValueAtTime(faderGain(autoValue(t.auto.vol, b0)), t0); ch.vol.gain.linearRampToValueAtTime(faderGain(v), tAt(b1)); }
+    if (t.auto.on.pan && t.auto.pan.length) { const v = autoValue(t.auto.pan, b1); if (env.first) ch.pan.pan.setValueAtTime(autoValue(t.auto.pan, b0), t0); ch.pan.pan.linearRampToValueAtTime(v, tAt(b1)); }
     for (const r of t.regions) {
       const loops = r.loops || 1;
       if (r.start >= b1 || rEnd(r) <= b0) continue;
       for (let k = 0; k < loops; k++) {
         const base = r.start + k * r.len;
         if (base >= b1 || base + r.len <= b0) continue;
-        if (t.kind === "audio") { if (base >= b0 && base < b1) startAudio(env, r, t0 + (base - b0) * sp, 0, out); continue; }
+        if (t.kind === "audio") { if (base >= b0 && base < b1) startAudio(env, r, tAt(base), 0, out, base); continue; }
         for (const n of r.notes) {
           if (n.s >= r.len || n.s < 0) continue;
           const ab = base + n.s; if (ab < b0 || ab >= b1) continue;
-          const when = t0 + (ab - b0) * sp, dur = Math.min(n.l, r.len - n.s) * sp;
+          const when = tAt(ab), dur = secAt(ab + Math.min(n.l, r.len - n.s)) - secAt(ab);
           if (t.kind === "drums") drumVoice(env.c, out, n.p, when, n.v, env.voices); else synthVoice(env.c, out, t.inst, n.p, when, dur, n.v, env.voices);
         }
       }
     }
   }
   env.first = false;
-  if (env.metro) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) clickVoice(env.c, env.c.destination, t0 + (b - b0) * sp, ((b % 4) + 4) % 4 === 0);
+  if (env.metro) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) clickVoice(env.c, env.c.destination, tAt(b), isBarStart(b));
 }
-function startAudio(env, r, when, intoBeats, out) {
+function startAudio(env, r, when, intoBeats, out, base) {
   const B = buffers.get(r.audioId); if (!B) return;
-  const sp = 60 / env.bpm, off = (r.offset || 0) + intoBeats * sp, len = r.len * sp - intoBeats * sp;
+  base = base ?? r.start;
+  const off = (r.offset || 0) + secAt(base + intoBeats) - secAt(base), len = secAt(base + r.len) - secAt(base + intoBeats);
   if (len <= 0 || off >= B.buf.duration) return;
   const s = env.c.createBufferSource(); s.buffer = B.buf;
   const g = env.c.createGain(); g.gain.value = r.gain ?? 1; s.connect(g); g.connect(out);
@@ -910,7 +982,7 @@ function startAudioSpanning(env, b, t0) {
   for (const t of env.tracks) {
     if (t.kind !== "audio") continue;
     const out = env.mix.tracks.get(t.id)?.in; if (!out) continue;
-    for (const r of t.regions) for (let k = 0; k < (r.loops || 1); k++) { const base = r.start + k * r.len; if (base < b && base + r.len > b) startAudio(env, r, t0, b - base, out); }
+    for (const r of t.regions) for (let k = 0; k < (r.loops || 1); k++) { const base = r.start + k * r.len; if (base < b && base + r.len > b) startAudio(env, r, t0, b - base, out, base); }
   }
 }
 
@@ -935,7 +1007,7 @@ function tick() {
     const wrap = P.loop.on && !T.rec && b1 >= P.loop.end - 1e-9 && T.nextBeat < P.loop.end;
     if (wrap) b1 = P.loop.end;
     scheduleRange(env, T.nextBeat, b1, T.nextTime);
-    T.nextTime += (b1 - T.nextBeat) * spb(); T.nextBeat = b1;
+    T.nextTime += secAt(b1) - secAt(T.nextBeat); T.nextBeat = b1; T.map.push({ t: T.nextTime, b: b1 });
     if (wrap) {
       for (const v of env.sources) { try { v.stop(T.nextTime); } catch (e) {} }
       env.sources = []; T.nextBeat = P.loop.start; T.map.push({ t: T.nextTime, b: T.nextBeat }); env.first = true;
@@ -948,14 +1020,14 @@ function tick() {
 function currentBeat() {
   if (!T.playing) return T.cursor;
   if (ENG.on) {
-    let b = ENG.beat + (performance.now() - ENG.at) / 1000 / spb();
+    let b = ENG.beat + (performance.now() - ENG.at) / 1000 / (60 / bpmAt(ENG.beat));
     if (P.loop.on && !T.rec && ENG.beat < P.loop.end && b >= P.loop.end && P.loop.end > P.loop.start) b = P.loop.start + (b - P.loop.end);
     return b;
   }
   const now = ctx.currentTime; let m = T.map[0];
   for (const e of T.map) if (e.t <= now) m = e;
   while (T.map.length > 1 && T.map[1].t <= now) T.map.shift();
-  return m.b + (now - m.t) / spb();
+  return m.b + (now - m.t) / (60 / bpmAt(m.b));
 }
 function stop() {
   if (!T.playing) { T.cursor = P.loop.on && T.cursor !== P.loop.start ? P.loop.start : 0; draw(); return; }
@@ -1030,7 +1102,7 @@ async function toggleRecord() {
   $("#bRec").classList.add("on");
   play(startBeat - pre);
   const R0 = T.rec;
-  T.rec.startTimer = setTimeout(() => { if (T.rec === R0) { for (const x of R0.recs) x.mr.start(); R0.started = true; } }, Math.max(0, pre * spb() * 1000 + 60));
+  T.rec.startTimer = setTimeout(() => { if (T.rec === R0) { for (const x of R0.recs) x.mr.start(); R0.started = true; } }, Math.max(0, (secAt(startBeat) - secAt(startBeat - pre)) * 1000 + 60));
 }
 function finishRecording() {
   const R = T.rec; T.rec = null; $("#bRec").classList.remove("on");
@@ -1041,7 +1113,7 @@ function finishRecording() {
     const notes = R.notes.filter((n) => n.s >= R.startBeat - 0.05);
     if (!notes.length) { toast("ไม่ได้อัดโน้ตไว้"); return; }
     mark();
-    const start = Math.floor(Math.min(...notes.map((n) => n.s)) / 4) * 4, end = Math.ceil(Math.max(...notes.map((n) => n.s + n.l)) / 4) * 4;
+    const start = barFloor(Math.max(0, Math.min(...notes.map((n) => n.s)))), end = barCeil(Math.max(...notes.map((n) => n.s + n.l)));
     const r = { id: uid(), name: "MIDI Take", start, len: Math.max(4, end - start), loops: 1, notes: notes.map((n) => ({ ...n, s: Math.max(0, n.s - start) })) };
     R.track.regions.push(r); selectRegion(r.id); autosave(); toast(`อัดได้ ${notes.length} โน้ต`); return;
   }
@@ -1056,8 +1128,8 @@ function finishRecording() {
       try {
         const buf = await ctx.decodeAudioData(await new Blob(x.chunks).arrayBuffer());
         if (!marked) { mark(); marked = true; }
-        const id = uid(); buffers.set(id, { buf, name: "Take" });
-        x.track.regions.push({ id: uid(), name: "Take " + (x.track.regions.length + 1), start: Math.max(0, R.startBeat - (SET.offsetMs / 1000) / spb()), len: buf.duration / spb(), loops: 1, audioId: id, offset: 0 });
+        const id = uid(); buffers.set(id, { buf, name: "Take" }); persistAudio(id);
+        x.track.regions.push({ id: uid(), name: "Take " + (x.track.regions.length + 1), start: Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), buf.duration), loops: 1, audioId: id, offset: 0 });
         n++;
       } catch (e) { toast("อ่านไฟล์ที่อัดไม่ได้: " + e.message); }
     }
@@ -1110,7 +1182,7 @@ function engProject() {
   const vst = (key, v) => { if (!v) return null; const k = key + "|" + v.pid; if (!v.state || ENG.sentState.has(k)) return { pid: v.pid, name: v.name }; ENG.sentState.add(k); return v; };
   const fx = (owner, list) => (list || []).map((f) => (f.type === "vst" ? { ...f, vst: vst(owner + ":" + f.id, f.vst) } : f));
   return {
-    bpm: P.bpm, loop: P.loop, metro: !!P.metro,
+    bpm: P.bpm, tempos: tempoChanges(), sigs: sigList(), loop: P.loop, metro: !!P.metro,
     master: { vol: P.master.vol, fx: fx("master", P.master.fx) },
     aux: P.aux.map((a) => ({ ...a, fx: fx(a.id, a.fx) })),
     tracks: P.tracks.map((t) => ({ ...t, vst: t.kind === "synth" ? vst(t.id + ":inst", t.vst) : null, fx: fx(t.id, t.fx) })),
@@ -1128,9 +1200,8 @@ async function engSyncMedia() {
     if (ENG.media.has(id)) continue;
     ENG.media.add(id);
     try {
-      const chs = []; for (let c = 0; c < Math.min(2, B.buf.numberOfChannels); c++) chs.push(B.buf.getChannelData(c));
-      const wav = encodeWav(chs, B.buf.sampleRate);
-      const path = await ENG.api.putAudio(id, wav.buffer);
+      let path = B.path || P.media[id];
+      if (!path) { const chs = []; for (let c = 0; c < Math.min(2, B.buf.numberOfChannels); c++) chs.push(B.buf.getChannelData(c)); path = await ENG.api.putAudio(id, encodeWav(chs, B.buf.sampleRate).buffer); }
       await engRequest({ cmd: "audio", id, path }, 60000);
     } catch (e) { ENG.media.delete(id); }
   }
@@ -1221,11 +1292,11 @@ async function engRecorded(takes) {
     const t = trackById(tk.track); if (!t) continue;
     ENG.media.add(tk.id);
     try {
-      const u8 = await ENG.api.readFile(tk.path);
+      const u8 = FS ? await FS.readAudio(tk.path) : await ENG.api.readFile(tk.path);
       const buf = await ctx.decodeAudioData(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength));
-      buffers.set(tk.id, { buf, name: "Take" });
+      buffers.set(tk.id, { buf, name: "Take", path: tk.path }); P.media[tk.id] = tk.path;
     } catch (e) { toast("อ่านไฟล์ที่อัดไม่ได้: " + e.message); }
-    t.regions.push({ id: uid(), name: "Take " + (t.regions.length + 1), start: Math.max(0, tk.startBeat - (SET.offsetMs / 1000) / spb()), len: tk.seconds / spb(), loops: 1, audioId: tk.id, offset: 0 });
+    t.regions.push({ id: uid(), name: "Take " + (t.regions.length + 1), start: Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), tk.seconds), loops: 1, audioId: tk.id, offset: 0 });
   }
   render(); autosave();
   toast(`บันทึกเสียงแล้ว ${takes.length} แทร็ก · ไฟล์อยู่ที่ Documents\\JAJA Studio\\Recordings`, 5000);
@@ -1385,8 +1456,8 @@ function renderInspector() {
   if (f) {
     const r = f.r, rb = h("div", { class: "ins-box" });
     rb.append(h("label", {}, ui.sel.size > 1 ? `Region (เลือก ${ui.sel.size})` : "Region", h("input", { class: "field", value: r.name, onfocus: mark, oninput: (e) => { r.name = e.target.value; const el = document.querySelector(`[data-region="${r.id}"] .rh`); if (el) el.textContent = r.name; autosave(); } })));
-    rb.append(h("div", { class: "kv" }, h("span", {}, "เริ่มบาร์"), h("span", {}, (r.start / 4 + 1).toFixed(2).replace(/\.00$/, ""))));
-    rb.append(h("div", { class: "kv" }, h("span", {}, "ความยาว"), h("span", {}, (r.len / 4).toFixed(2).replace(/\.00$/, "") + " บาร์")));
+    rb.append(h("div", { class: "kv" }, h("span", {}, "เริ่มบาร์"), h("span", {}, fmtPos(r.start))));
+    rb.append(h("div", { class: "kv" }, h("span", {}, "ความยาว"), h("span", {}, +(r.len).toFixed(2) + " beat")));
     const loopIn = h("input", { class: "field", type: "number", min: 1, max: 64, value: r.loops || 1, style: "width:56px;height:22px", onchange: (e) => { mark(); r.loops = clamp(Math.round(+e.target.value || 1), 1, 64); render(); autosave(); } });
     rb.append(h("div", { class: "kv", style: "align-items:center" }, h("span", {}, "วนซ้ำ (Loop)"), loopIn));
     if (r.notes) rb.append(h("div", { class: "kv" }, h("span", {}, "โน้ต"), h("span", {}, r.notes.length)));
@@ -1402,15 +1473,25 @@ function renderInspector() {
 
 function renderArrange() {
   ui.hw = window.innerWidth < 640 ? 150 : 210;
-  const g = $("#arrGrid"), HW = ui.hw, bars = totalBars(), W = bars * 4 * ui.beatPx, sc = $("#arrScroll"), keep = [sc.scrollLeft, sc.scrollTop];
+  const g = $("#arrGrid"), HW = ui.hw, bars = totalBars(), W = barStartBeat(bars) * ui.beatPx, sc = $("#arrScroll"), keep = [sc.scrollLeft, sc.scrollTop];
   g.style.gridTemplateColumns = `${HW}px ${W}px`;
   g.replaceChildren();
   const ruler = h("div", { class: "ruler", id: "ruler" }, h("div", { class: "loopband" + (P.loop.on ? " on" : ""), id: "loopband" }));
   const every = ui.beatPx < 14 ? 4 : ui.beatPx < 22 ? 2 : 1;
-  for (let b = 0; b < bars; b += every) ruler.append(h("div", { class: "bar", style: `left:${b * 4 * ui.beatPx}px` }, String(b + 1)));
+  const tempoAt = new Map(tempoChanges().map((t) => [barAt(t.b).bar, t])), sigAt = new Map(sigList().filter((x) => x.bar > 0).map((x) => [x.bar, x]));
+  const barXs = [];
+  for (let b = 0; b < bars; b++) {
+    const x = barStartBeat(b) * ui.beatPx; barXs.push(x);
+    const tc = tempoAt.get(b), sc2 = sigAt.get(b);
+    if (b % every && !tc && !sc2) continue;
+    ruler.append(h("div", { class: "bar" + (tc || sc2 ? " chg" : ""), style: `left:${x}px`, title: tc || sc2 ? "คลิกขวาที่ไม้บรรทัด หรือเมนู Window > Tempo & Signature เพื่อแก้" : null }, String(b + 1), sc2 ? h("i", {}, ` ${sc2.num}/${sc2.den}`) : null, tc ? h("i", {}, ` ♩${+tc.bpm.toFixed(2)}`) : null));
+  }
+  const barSvg = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${Math.ceil(W)}' height='4' preserveAspectRatio='none'>${barXs.map((x) => `<rect x='${x.toFixed(1)}' width='1' height='4' fill='rgba(255,255,255,.07)'/>`).join("")}</svg>`)}")`;
   g.append(h("div", { class: "corner" }, h("span", { style: "color:var(--fg-2);font-size:11px" }, P.tracks.length + " แทร็ก")), ruler);
+  g.append(h("div", { class: "arr-head" }, h("b", {}, "Arrangement"), h("button", { class: "ms", title: "เพิ่มท่อน (Intro, Verse, Chorus…) ที่หัวเล่น", "aria-label": "เพิ่มท่อน", onclick: () => addMarker() }, "+")),
+    h("div", { class: "arr-lane", onpointerdown: (e) => { if (e.target.classList.contains("arr-lane")) { ui.markerId = null; document.querySelectorAll(".marker.sel").forEach((x) => x.classList.remove("sel")); } }, ondblclick: (e) => { if (e.target.classList.contains("arr-lane")) { T.cursor = Math.max(0, e.offsetX / ui.beatPx); addMarker(); } } }, ...P.markers.map(markerEl)));
   if (!P.tracks.length) g.append(h("div", { class: "empty-hint", style: "grid-column:1 / span 2" }, "ยังไม่มีแทร็ก กด + Synth, + Drums หรือ Chord Pad เพื่อเริ่ม"));
-  const gridBg = `background-image:repeating-linear-gradient(to right, rgba(255,255,255,.07) 0 1px, transparent 1px ${4 * ui.beatPx}px), repeating-linear-gradient(to right, rgba(255,255,255,.025) 0 1px, transparent 1px ${ui.beatPx}px)`;
+  const gridBg = `background-image:${barSvg}, repeating-linear-gradient(to right, rgba(255,255,255,.025) 0 1px, transparent 1px ${ui.beatPx}px);background-size:${Math.ceil(W)}px 100%, auto;background-repeat:no-repeat, repeat`;
   P.tracks.forEach((t, i) => {
     g.append(headEl(t));
     const lane = h("div", { class: "lane", "data-track": t.id, style: `background-color:${i % 2 ? "var(--lane-alt)" : "var(--lane)"};${gridBg}` });
@@ -1508,9 +1589,9 @@ function drawRegionPreview(cv, t, r) {
     if (k) { g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(x0, 0, 1, H); }
     if (t.kind === "audio") {
       const B = buffers.get(r.audioId); if (!B) continue;
-      const pk = peaksOf(B), pps = pk.length / B.buf.duration, sp = spb();
+      const pk = peaksOf(B), pps = pk.length / B.buf.duration, base = r.start + k * r.len, s0 = secAt(base);
       g.fillStyle = "rgba(255,255,255,.8)";
-      for (let x = 0; x < ws; x++) { const sec = (r.offset || 0) + (x / ws) * r.len * sp, i = Math.floor(sec * pps); if (i >= pk.length) break; const a = pk[i] * (H / 2 - 1); g.fillRect(x0 + x, H / 2 - a, 1, Math.max(1, a * 2)); }
+      for (let x = 0; x < ws; x++) { const sec = (r.offset || 0) + secAt(base + (x / ws) * r.len) - s0, i = Math.floor(sec * pps); if (i >= pk.length) break; const a = pk[i] * (H / 2 - 1); g.fillRect(x0 + x, H / 2 - a, 1, Math.max(1, a * 2)); }
       continue;
     }
     if (!r.notes.length) continue;
@@ -1528,7 +1609,7 @@ function peaksOf(B) {
   return (B.peaks = pk);
 }
 const snapVal = () => +$("#snap").value;
-const snapBeat = (b, fine) => { const s = fine ? 0.25 : snapVal(); return Math.round(b / s) * s; };
+const snapBeat = (b, fine) => { const s = fine ? 0.25 : snapVal(); if (s === 4) return barRound(b); return Math.round(b / s) * s; };
 function regionPointer(e, t, r, el) {
   if (e.button !== 0) return;
   e.preventDefault();
@@ -1550,7 +1631,7 @@ function regionPointer(e, t, r, el) {
       const d = clamp(snapBeat(db, ev.shiftKey), -o.start, o.len - 0.25);
       r.start = o.start + d; r.len = o.len - d;
       if (r.notes) r.notes.forEach((n, i) => (n.s = o.notes[i] - d));
-      if (r.audioId) r.offset = Math.max(0, o.offset + d * spb());
+      if (r.audioId) r.offset = Math.max(0, o.offset + secAt(o.start + d) - secAt(o.start));
     } else for (const x of orig) x.f.r.start = Math.max(0, snapBeat(x.start + db, ev.shiftKey));
     for (const x of orig) { const node = document.querySelector(`[data-region="${x.f.r.id}"]`); if (node) { node.style.left = x.f.r.start * ui.beatPx + "px"; node.style.width = Math.max(6, x.f.r.len * ui.beatPx) * (x.f.r.loops || 1) + "px"; } }
   };
@@ -1563,7 +1644,7 @@ function regionPointer(e, t, r, el) {
 function createRegionAt(t, px) {
   if (t.kind === "audio") { ui.trackId = t.id; $("#fileAudio").click(); return; }
   mark();
-  const start = Math.floor(px / ui.beatPx / 4) * 4, r = { id: uid(), name: t.kind === "drums" ? "Beat" : "MIDI", start, len: 4, loops: 1, notes: [] };
+  const start = barFloor(px / ui.beatPx), r = { id: uid(), name: t.kind === "drums" ? "Beat" : "MIDI", start, len: 4, loops: 1, notes: [] };
   t.regions.push(r); selectRegion(r.id); setTab("roll"); autosave();
 }
 const selected = () => [...ui.sel].map(findRegion).filter(Boolean);
@@ -1600,6 +1681,11 @@ function splitAtPlayhead() {
   if (!targets.length) { const t = trackById(ui.trackId); if (t) targets = t.regions.filter((r) => r.start < c && rEnd(r) > c).map((r) => ({ t, r })); }
   if (!targets.length) { toast("วางหัวเล่นบน region ที่จะตัด"); return; }
   mark(); const ids = [];
+  cutRegions(targets, c, ids);
+  ui.sel = new Set(ids); ui.regionId = ids[0] || null; render(); autosave(); toast("ตัดที่หัวเล่นแล้ว");
+}
+/* split regions at beat c (loops are baked first) */
+function cutRegions(targets, c, ids = []) {
   for (const { t, r } of targets) {
     if ((r.loops || 1) > 1) {
       if (r.notes) bakeLoops(r);
@@ -1607,13 +1693,14 @@ function splitAtPlayhead() {
     }
     splitOne(t, r, c, ids);
   }
-  ui.sel = new Set(ids); ui.regionId = ids[0] || null; render(); autosave(); toast("ตัดที่หัวเล่นแล้ว");
+  return ids;
 }
+const splitAllAt = (c) => cutRegions(P.tracks.flatMap((t) => t.regions.filter((r) => r.start < c - 1e-9 && rEnd(r) > c + 1e-9).map((r) => ({ t, r }))), c);
 function splitOne(t, r, c, ids) {
   const cut = c - r.start; if (cut <= 0 || cut >= r.len) return;
   const right = Object.assign(JSON.parse(JSON.stringify(r)), { id: uid(), start: c, len: r.len - cut });
   if (r.notes) { right.notes = r.notes.filter((n) => n.s >= cut).map((n) => ({ ...n, s: n.s - cut })); r.notes = r.notes.filter((n) => n.s < cut); }
-  if (r.audioId) right.offset = (r.offset || 0) + cut * spb();
+  if (r.audioId) right.offset = (r.offset || 0) + secAt(r.start + cut) - secAt(r.start);
   r.len = cut; t.regions.push(right); ids.push(right.id);
 }
 function quantizeSelected() {
@@ -1642,8 +1729,8 @@ function bindRuler(ruler) {
   ruler.addEventListener("pointerdown", (e) => {
     const rect = ruler.getBoundingClientRect(), bx = (x) => (x - rect.left) / ui.beatPx;
     if (e.clientY - rect.top < 12) {
-      ruler.setPointerCapture(e.pointerId); const a = Math.floor(bx(e.clientX) / 4) * 4;
-      const mv = (ev) => { const b = Math.ceil(bx(ev.clientX) / 4) * 4; P.loop.start = Math.min(a, b); P.loop.end = Math.max(a, b, a + 4); P.loop.on = true; updateLoopBand(); };
+      ruler.setPointerCapture(e.pointerId); const a = barFloor(Math.max(0, bx(e.clientX)));
+      const mv = (ev) => { const b = barCeil(Math.max(0, bx(ev.clientX))); P.loop.start = Math.min(a, b); P.loop.end = Math.max(a, b, a + barAt(a).len); P.loop.on = true; updateLoopBand(); };
       const up = () => { ruler.removeEventListener("pointermove", mv); ruler.removeEventListener("pointerup", up); autosave(); };
       ruler.addEventListener("pointermove", mv); ruler.addEventListener("pointerup", up); mv(e);
     } else seek(snapBeat(bx(e.clientX), e.shiftKey));
@@ -1714,8 +1801,8 @@ function knobEl(o) {
   svg.setAttribute("viewBox", "0 0 28 28"); svg.setAttribute("class", "knob"); svg.setAttribute("role", "slider"); svg.setAttribute("tabindex", "0"); svg.setAttribute("aria-label", "Pan " + o.name);
   const gid = "k" + o.id;
   svg.innerHTML = `<defs><radialGradient id="kb${gid}" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#d2b0f2"/><stop offset=".55" stop-color="#7d45bc"/><stop offset="1" stop-color="#36155f"/></radialGradient><linearGradient id="kr${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a6ad0"/><stop offset="1" stop-color="#1e0b36"/></linearGradient></defs><circle cx="14" cy="14" r="12.5" fill="url(#kr${gid})"/><circle cx="14" cy="14" r="10.5" fill="url(#kb${gid})"/><line x1="14" y1="14" x2="14" y2="5" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`;
-  const line = svg.querySelector("line"), set = (v) => { o.pan = clamp(Math.round(v * 100) / 100, -1, 1); line.setAttribute("transform", `rotate(${o.pan * 135} 14 14)`); svg.setAttribute("aria-valuenow", o.pan); svg.setAttribute("aria-valuetext", o.pan === 0 ? "C" : (o.pan < 0 ? "L" : "R") + Math.round(Math.abs(o.pan) * 100)); applyMix(); autosave(); };
-  set(o.pan || 0);
+  const line = svg.querySelector("line"), set = (v, init) => { o.pan = clamp(Math.round(v * 100) / 100, -1, 1); line.setAttribute("transform", `rotate(${o.pan * 135} 14 14)`); svg.setAttribute("aria-valuenow", o.pan); svg.setAttribute("aria-valuetext", o.pan === 0 ? "C" : (o.pan < 0 ? "L" : "R") + Math.round(Math.abs(o.pan) * 100)); if (!init) { applyMix(); autosave(); } };
+  set(o.pan || 0, true);
   svg.addEventListener("pointerdown", (e) => { svg.setPointerCapture(e.pointerId); mark(); const y0 = e.clientY, p0 = o.pan; const mv = (ev) => set(p0 + (y0 - ev.clientY) / 120); const up = () => { svg.removeEventListener("pointermove", mv); svg.removeEventListener("pointerup", up); syncStrips(); }; svg.addEventListener("pointermove", mv); svg.addEventListener("pointerup", up); });
   svg.addEventListener("dblclick", () => { mark(); set(0); syncStrips(); });
   svg.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft") set(o.pan - 0.05); if (e.key === "ArrowRight") set(o.pan + 0.05); });
@@ -1817,11 +1904,18 @@ const selTrack = () => trackById(ui.trackId);
 const MENUS = () => ({
   File: [
     ["โปรเจกต์ใหม่", "Ctrl+N", newProject],
-    ["เปิดโปรเจกต์…", "Ctrl+O", () => $("#fileProj").click()],
-    ["บันทึกโปรเจกต์", "Ctrl+S", () => saveProject()],
+    ["เปิดโปรเจกต์…", "Ctrl+O", () => openProjectDialog()],
+    ...PROJ.recent.filter((x) => x.file !== PROJ.file).slice(0, 5).map((x) => ["  ล่าสุด: " + x.name, "", () => openProjectDialog(x.file)]),
+    ["บันทึก", "Ctrl+S", () => saveProject()],
+    ["บันทึกเป็น…", "Ctrl+Shift+S", () => saveProject(true)],
+    ...(FS && PROJ.file ? [["เปิดโฟลเดอร์โปรเจกต์", "", () => FS.showInFolder(PROJ.file)]] : []),
     "-",
     ["นำเข้าไฟล์เสียง…", "Ctrl+I", () => $("#fileAudio").click()],
+    ["นำเข้าไฟล์ MIDI (.mid)…", "", () => $("#fileMidi").click()],
+    "-",
     ["Bounce ส่งออกเป็น WAV…", "Ctrl+B", () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message))],
+    ["ส่งออกแยกแทร็ก (Stems)…", "", () => exportStems().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message))],
+    ["ส่งออกเป็นไฟล์ MIDI (.mid)…", "", () => exportMidi().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message))],
     "-",
     ["Audio Setup…", "", openSetup],
   ],
@@ -1883,9 +1977,11 @@ const MENUS = () => ({
     ["Piano Roll", "P", () => showPane("roll"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "roll"],
   ],
   Window: [
+    ["เพิ่มท่อน (Arrangement Marker)", "", () => addMarker()],
     ["Chord Pad ช่วยคิดคอร์ด", "", openChord],
     ["Beat สร้างจังหวะกลอง", "", openBeat],
     ["Audio Setup", "", openSetup],
+    ["Tempo & Signature…", "", openTempo],
   ],
   Help: [
     ["คีย์ลัดทั้งหมด", "", openHelp],
@@ -1919,7 +2015,8 @@ function buildMenubar() {
   document.addEventListener("pointerdown", (e) => { if (mbOpen && !e.target.closest("#mbDrop, #mbItems")) closeMenubar(); });
 }
 function updateMenubar() {
-  const t = `${P.name || "เพลงใหม่"} — Tracks`;
+  const t = `${P.name || "เพลงใหม่"}${PROJ.dirty ? " •" : ""} — Tracks${PROJ.file ? "" : " (ยังไม่เคยบันทึก)"}`;
+  const dt = `${P.name || "เพลงใหม่"}${PROJ.dirty ? " •" : ""} — JAJA Studio`; if (document.title !== dt) document.title = dt;
   if ($("#mbTitle").textContent !== t) $("#mbTitle").textContent = t;
   const cur = ENG.on ? ENG.dev?.current : null;
   const st = ENG.on ? `<b>●</b> ${cur ? cur.type + " · " + cur.sampleRate / 1000 + " kHz · " + cur.bufferSize : "JAJA Engine"}` : `Web Audio${ctx ? " · " + ctx.sampleRate / 1000 + " kHz" : ""}`;
@@ -1928,14 +2025,37 @@ function updateMenubar() {
 function newProject() {
   if (T.playing) stop();
   mark();
-  P = migrate({ name: "เพลงใหม่", bpm: 96, key: "C maj", loop: { on: false, start: 0, end: 16 }, tracks: [] });
+  P = migrate({ name: "เพลงใหม่", bpm: 96, key: "C maj", loop: { on: false, start: 0, end: 16 }, tracks: [] }); PROJ.file = null;
   ui.trackId = null; ui.regionId = null; ui.sel.clear(); T.cursor = 0;
   rebuildMix(); loadProjectUi(); render(); autosave();
   toast("เริ่มโปรเจกต์ใหม่แล้ว (Ctrl+Z เพื่อย้อนกลับ)");
 }
 const HELP_KEYS = [["Space", "เล่น / หยุด"], ["Enter", "ไปต้นเพลง"], ["R", "อัด"], ["C", "Cycle วนเล่น"], ["K", "Metronome"], ["I", "Inspector"], ["X", "Mixer"], ["P", "Piano Roll"], ["Q", "Quantize"],
   ["Ctrl+Z / Ctrl+Shift+Z", "Undo / Redo"], ["Ctrl+C / X / V", "คัดลอก / ตัด / วาง"], ["Ctrl+D", "ทำซ้ำ region"], ["Ctrl+T", "ตัดที่หัวเล่น"], ["Ctrl+A", "เลือกทั้งหมด"], ["Delete", "ลบ"],
-  ["Ctrl+K", "Musical Typing (Z/X = อ็อกเทฟ)"], ["Ctrl+N", "โปรเจกต์ใหม่"], ["Ctrl+O", "เปิดโปรเจกต์"], ["Ctrl+S", "บันทึก"], ["Ctrl+I", "นำเข้าเสียง"], ["Ctrl+B", "Bounce ส่งออก WAV"]];
+  ["Ctrl+K", "Musical Typing (Z/X = อ็อกเทฟ)"], ["Ctrl+N", "โปรเจกต์ใหม่"], ["Ctrl+O", "เปิดโปรเจกต์"], ["Ctrl+S", "บันทึก (ทับไฟล์เดิม)"], ["Ctrl+Shift+S", "บันทึกเป็น…"], ["คลิกขวาที่ไม้บรรทัด", "Tempo & Signature"], ["Alt+ลากป้ายท่อน", "คัดลอกทั้งท่อน"], ["Ctrl+I", "นำเข้าเสียง"], ["Ctrl+B", "Bounce ส่งออก WAV"]];
+/* Tempo & Signature list */
+function openTempo() { renderTempoRows(); if (!$("#dlgTempo").open) $("#dlgTempo").showModal(); }
+function tempoEdited() { P.tempos = tempoChanges(); rebuildMix(); render(); autosave(); renderTempoRows(); }
+function renderTempoRows() {
+  const num = (v, min, max, on) => h("input", { class: "field", type: "number", min, max, step: "any", value: v, onfocus: mark, onchange: (e) => on(+e.target.value) });
+  const del = (fn) => h("button", { type: "button", class: "btn small", "aria-label": "ลบ", onclick: () => { mark(); fn(); } }, "×");
+  const tr = [h("div", { class: "trow thead2" }, h("span", {}, "บาร์"), h("span", {}, "Tempo (BPM)"), h("span"))];
+  tr.push(h("div", { class: "trow" }, h("span", {}, "1 (เริ่มเพลง)"), num(P.bpm, 20, 300, (v) => { P.bpm = clamp(v || 96, 20, 300); tempoEdited(); }), h("span")));
+  for (const t of tempoChanges()) tr.push(h("div", { class: "trow" },
+    num(barAt(t.b).bar + 1, 2, 999, (v) => { t.b = barStartBeat(clamp(Math.round(v || 2), 2, 999) - 1); tempoEdited(); }),
+    num(t.bpm, 20, 300, (v) => { t.bpm = clamp(v || P.bpm, 20, 300); tempoEdited(); }),
+    del(() => { P.tempos = tempoChanges().filter((x) => x !== t); tempoEdited(); })));
+  $("#tempoRows").replaceChildren(...tr);
+  const den = (sg) => h("select", { class: "field", onfocus: mark, onchange: (e) => { sg.den = +e.target.value; sigEdited(); } }, ...[2, 4, 8, 16].map((d) => h("option", { value: d, selected: sg.den === d }, d)));
+  const sr = [h("div", { class: "trow thead2" }, h("span", {}, "บาร์"), h("span", {}, "Signature"), h("span"))];
+  P.sigs = sigList();
+  for (const sg of P.sigs) sr.push(h("div", { class: "trow" },
+    sg.bar === 0 ? h("span", {}, "1 (เริ่มเพลง)") : num(sg.bar + 1, 2, 999, (v) => { sg.bar = clamp(Math.round(v || 2), 2, 999) - 1; sigEdited(); }),
+    h("div", { style: "display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center" }, num(sg.num, 1, 32, (v) => { sg.num = clamp(Math.round(v || 4), 1, 32); sigEdited(); }), h("span", {}, "/"), den(sg)),
+    sg.bar === 0 ? h("span") : del(() => { P.sigs = P.sigs.filter((x) => x !== sg); sigEdited(); })));
+  $("#sigRows").replaceChildren(...sr);
+}
+function sigEdited() { P.sigs = sigList(); render(); autosave(); renderTempoRows(); }
 function openHelp() {
   $("#helpKeys").replaceChildren(...HELP_KEYS.flatMap(([k, d]) => [h("kbd", {}, k), h("span", {}, d)]));
   $("#helpVer").textContent = "JAJA Studio " + VERSION;
@@ -2046,7 +2166,7 @@ function bindRoll(cv, t, r, rows, rowH, Hn, redraw) {
 function refreshRegion(t, r) { const el = document.querySelector(`[data-region="${r.id}"] canvas`); if (el) drawRegionPreview(el, t, r); renderInspector(); }
 
 /* ---------------------------------------------------------------- per-frame drawing */
-function fmtPos(b) { if (b < 0) return "-" + String(Math.ceil(-b)).padStart(2, "0") + " cnt"; const bar = Math.floor(b / 4) + 1, beat = Math.floor(b % 4) + 1, six = Math.floor((b % 1) * 4) + 1; return String(bar).padStart(3, "0") + "." + beat + "." + six; }
+function fmtPos(b) { if (b < 0) return "-" + String(Math.ceil(-b)).padStart(2, "0") + " cnt"; const a = barAt(b), inBar = b - a.start, bar = a.bar + 1, beat = Math.floor(inBar + 1e-9) + 1, six = Math.floor(((inBar + 1e-9) % 1) * 4) + 1; return String(bar).padStart(3, "0") + "." + beat + "." + six; }
 function fmtTime(s) { s = Math.max(0, s); const m = Math.floor(s / 60); return m + ":" + (s % 60).toFixed(1).padStart(4, "0"); }
 const meterBuf = new Float32Array(512);
 function peak(an) { an.getFloatTimeDomainData(meterBuf); let m = 0; for (let i = 0; i < meterBuf.length; i++) { const v = Math.abs(meterBuf[i]); if (v > m) m = v; } return m; }
@@ -2054,7 +2174,10 @@ const meterLevel = (pk) => { const db = gainDb(pk); return db === -Infinity ? 0 
 function draw() {
   const b = currentBeat();
   const ph = $("#playhead"); if (ph) { ph.style.left = ui.hw + Math.max(0, b) * ui.beatPx + "px"; ph.style.height = $("#arrGrid").scrollHeight + "px"; }
-  $("#lcdPos").textContent = fmtPos(b); $("#lcdTime").textContent = fmtTime(b * spb());
+  $("#lcdPos").textContent = fmtPos(b); $("#lcdTime").textContent = fmtTime(secAt(b));
+  const bpmNow = String(Math.round(bpmAt(Math.max(0, b)) * 100) / 100), sgNow = barAt(Math.max(0, b)).sig, sgTxt = `KEY · ${sgNow.num}/${sgNow.den}`;
+  if (document.activeElement !== $("#bpm") && $("#bpm").value !== bpmNow) $("#bpm").value = bpmNow;
+  if ($("#lcdSig").textContent !== sgTxt) $("#lcdSig").textContent = sgTxt;
   if (T.playing && b >= 0) { const sc = $("#arrScroll"), x = b * ui.beatPx, vw = sc.clientWidth - ui.hw; if (x < sc.scrollLeft || x > sc.scrollLeft + vw - 40) sc.scrollLeft = Math.max(0, x - 40); }
 }
 function frame() {
@@ -2094,7 +2217,7 @@ const chordOpts = () => ({ style: $("#cStyle").value, key: +$("#cKey").value, ch
 function chordPreview() { const pr = buildProgression(chordOpts()); $("#cPreview").replaceChildren(...pr.names.map((n) => h("span", { class: "chip" }, n))); }
 function createChords() {
   mark();
-  const o = chordOpts(), pr = buildProgression(o), start = Math.floor(T.cursor / 4) * 4, label = STYLES[o.style].title.split(" (")[0];
+  const o = chordOpts(), pr = buildProgression(o), start = barFloor(T.cursor), label = STYLES[o.style].title.split(" (")[0];
   const ct = newTrack("synth", "Chords " + label, { inst: $("#cInst").value, color: "#a650dc", vol: 0.62, sends: { aux1: 0.3 } });
   ct.regions.push({ id: uid(), name: pr.names.join(" "), start, len: pr.len, loops: 1, notes: pr.chords });
   P.tracks.push(ct); if (M) addTrackChannel(M, ct);
@@ -2106,7 +2229,7 @@ function createChords() {
 function openBeat() { const st = $("#bStyle"); if (!st.options.length) for (const k in BEATS) st.append(h("option", { value: k }, BEATS[k].title)); $("#dlgBeat").showModal(); }
 function createBeat() {
   mark();
-  const k = $("#bStyle").value, bars = +$("#bLen").value, start = Math.floor(T.cursor / 4) * 4;
+  const k = $("#bStyle").value, bars = +$("#bLen").value, start = barFloor(T.cursor);
   const t = newTrack("drums", "Drums " + BEATS[k].title, { color: "#5cc43c" });
   t.regions.push({ id: uid(), name: BEATS[k].title + " Beat", start, len: bars * 4, loops: 1, notes: buildBeat(k, bars, $("#bFill").checked) });
   P.tracks.push(t); if (M) addTrackChannel(M, t); ui.trackId = t.id; ui.regionId = t.regions[0].id; ui.sel = new Set([ui.regionId]); applyMix(); render(); autosave();
@@ -2164,6 +2287,262 @@ function wireSetup() {
   $("#eRescan").onclick = () => engScan(true);
 }
 
+/* ---------------------------------------------------------------- arrangement markers (Intro / Verse / Chorus …) */
+const MARKER_COLORS = ["#4f8fd6", "#d6a634", "#5cc43c", "#e0479f", "#a650dc", "#f2994a", "#2fb7c7"];
+const SECTION_NAMES = ["Intro", "Verse", "Pre-Chorus", "Chorus", "Bridge", "Solo", "Outro"];
+const inRange = (b, a, len) => b >= a - 1e-9 && b < a + len - 1e-9;
+const barsLater = (b, n) => barStartBeat(barAt(b).bar + n);
+function shiftAfter(at, d, skip) {
+  for (const t of P.tracks) {
+    for (const r of t.regions) if (r.start >= at - 1e-9) r.start = Math.max(0, r.start + d);
+    for (const k of ["vol", "pan"]) for (const p of t.auto[k]) if (p.b >= at - 1e-9) p.b = Math.max(0, p.b + d);
+  }
+  for (const m of P.markers) if (m !== skip && m.start >= at - 1e-9) m.start = Math.max(0, m.start + d);
+}
+function sectionRegions(m) { return P.tracks.flatMap((t) => t.regions.filter((r) => inRange(r.start, m.start, m.len)).map((r) => ({ t, r }))); }
+function cloneRegion(r, d) { return { ...JSON.parse(JSON.stringify(r)), id: uid(), start: r.start + d }; }
+function addMarker(name) {
+  mark();
+  const start = barFloor(T.cursor), next = P.markers.filter((m) => m.start > start).sort((a, b) => a.start - b.start)[0];
+  const len = Math.max(barAt(start).len, Math.min(next ? next.start - start : Infinity, barsLater(start, 8) - start));
+  const m = { id: uid(), name: name || SECTION_NAMES[P.markers.length % SECTION_NAMES.length], start, len, color: MARKER_COLORS[P.markers.length % MARKER_COLORS.length] };
+  P.markers.push(m); P.markers.sort((a, b) => a.start - b.start); ui.markerId = m.id;
+  render(); autosave(); toast(`เพิ่มท่อน "${m.name}" ที่บาร์ ${barAt(start).bar + 1} · ลากเพื่อย้ายทั้งท่อน, Alt+ลาก = คัดลอก, คลิกขวาดูคำสั่ง`, 4500);
+}
+/* move a section together with its regions and automation; copy = leave the original */
+function moveSection(m, newStart, copy) {
+  const d = newStart - m.start; if (Math.abs(d) < 1e-9) return;
+  mark(); splitAllAt(m.start); splitAllAt(m.start + m.len);
+  for (const { t, r } of sectionRegions(m)) { if (copy) t.regions.push(cloneRegion(r, d)); else r.start += d; }
+  for (const t of P.tracks) for (const k of ["vol", "pan"]) {
+    const pts = t.auto[k].filter((p) => inRange(p.b, m.start, m.len));
+    if (copy) t.auto[k].push(...pts.map((p) => ({ b: p.b + d, v: p.v }))); else pts.forEach((p) => (p.b += d));
+    t.auto[k].sort((a, b) => a.b - b.b);
+  }
+  if (copy) P.markers.push({ ...m, id: uid(), start: newStart }); else m.start = newStart;
+  P.markers.sort((a, b) => a.start - b.start);
+  render(); autosave();
+}
+/* duplicate a section right after itself, pushing the rest of the song later */
+function duplicateSection(m) {
+  mark(); splitAllAt(m.start); splitAllAt(m.start + m.len);
+  const L = m.len, end = m.start + L, regs = sectionRegions(m), pts = P.tracks.map((t) => ({ t, v: t.auto.vol.filter((p) => inRange(p.b, m.start, L)), p: t.auto.pan.filter((p) => inRange(p.b, m.start, L)) }));
+  shiftAfter(end, L, m);
+  for (const { t, r } of regs) t.regions.push(cloneRegion(r, L));
+  for (const x of pts) { x.t.auto.vol.push(...x.v.map((p) => ({ b: p.b + L, v: p.v }))); x.t.auto.pan.push(...x.p.map((p) => ({ b: p.b + L, v: p.v }))); x.t.auto.vol.sort((a, b) => a.b - b.b); x.t.auto.pan.sort((a, b) => a.b - b.b); }
+  P.markers.push({ ...m, id: uid(), start: end }); P.markers.sort((a, b) => a.start - b.start);
+  render(); autosave(); toast(`ทำซ้ำท่อน "${m.name}" แล้ว`);
+}
+/* delete a section with everything in it and close the gap */
+function deleteSection(m) {
+  mark(); splitAllAt(m.start); splitAllAt(m.start + m.len);
+  const L = m.len, end = m.start + L;
+  for (const t of P.tracks) { t.regions = t.regions.filter((r) => !inRange(r.start, m.start, L)); for (const k of ["vol", "pan"]) t.auto[k] = t.auto[k].filter((p) => !inRange(p.b, m.start, L)); }
+  P.markers = P.markers.filter((x) => x !== m);
+  shiftAfter(end, -L);
+  ui.sel = new Set([...ui.sel].filter((id) => findRegion(id))); if (ui.regionId && !findRegion(ui.regionId)) ui.regionId = null;
+  render(); autosave(); toast(`ลบท่อน "${m.name}" พร้อมเนื้อหาแล้ว (Ctrl+Z เพื่อเอาคืน)`);
+}
+function renameMarker(m, name) { if (!name) return; mark(); m.name = name.slice(0, 24); render(); autosave(); }
+function markerMenu(e, m) {
+  closeMenu(); e.preventDefault(); e.stopPropagation();
+  const item = (label, fn) => h("button", { role: "menuitem", onclick: () => { closeMenu(); fn(); } }, label);
+  menuEl = h("div", { class: "menu-pop", role: "menu" },
+    h("div", { class: "mlabel" }, m.name),
+    item("เล่นวนท่อนนี้ (Cycle)", () => { P.loop = { on: true, start: m.start, end: m.start + m.len }; updateLoopBand(); seek(m.start); autosave(); }),
+    item("ทำซ้ำท่อน (แทรกต่อท้าย)", () => duplicateSection(m)),
+    item("เปลี่ยนชื่อ…", () => renameMarker(m, prompt("ชื่อท่อน", m.name))),
+    h("hr"), h("div", { class: "mlabel" }, "ตั้งชื่อเร็ว"),
+    ...SECTION_NAMES.map((n) => item(n, () => renameMarker(m, n))),
+    h("hr"),
+    item("ลบเฉพาะป้าย", () => { mark(); P.markers = P.markers.filter((x) => x !== m); render(); autosave(); }),
+    item("ลบท่อนพร้อมเนื้อหา", () => deleteSection(m)));
+  document.body.append(menuEl);
+  const mh = menuEl.offsetHeight;
+  menuEl.style.left = clamp(e.clientX, 8, window.innerWidth - 190) + "px"; menuEl.style.top = clamp(e.clientY, 8, window.innerHeight - mh - 8) + "px";
+}
+function markerEl(m) {
+  const el = h("div", { class: "marker" + (ui.markerId === m.id ? " sel" : ""), "data-marker": m.id, title: `${m.name} · ลาก = ย้ายทั้งท่อน, Alt+ลาก = คัดลอก, ดับเบิลคลิก = เปลี่ยนชื่อ, คลิกขวา = เมนู`,
+    style: `left:${m.start * ui.beatPx}px;width:${Math.max(8, m.len * ui.beatPx - 2)}px;background:linear-gradient(${shade(m.color, 1.2)}, ${m.color} 55%, ${shade(m.color, 0.75)})` },
+    h("span", { class: "mname" }, m.name), h("span", { class: "mgrip", title: "ลากเพื่อเปลี่ยนความยาวท่อน" }));
+  el.addEventListener("contextmenu", (e) => markerMenu(e, m));
+  el.addEventListener("dblclick", () => renameMarker(m, prompt("ชื่อท่อน", m.name)));
+  el.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    e.stopPropagation(); el.setPointerCapture(e.pointerId);
+    const resize = e.target.classList.contains("mgrip"), x0 = e.clientX, o = { start: m.start, len: m.len }, copy = e.altKey;
+    ui.markerId = m.id; document.querySelectorAll(".marker").forEach((x) => x.classList.toggle("sel", x === el));
+    let moved = false, target = m.start, newLen = m.len;
+    const mv = (ev) => {
+      const db = (ev.clientX - x0) / ui.beatPx; if (Math.abs(ev.clientX - x0) > 3) moved = true;
+      if (resize) { newLen = Math.max(barAt(o.start).len, barRound(o.start + o.len + db) - o.start); el.style.width = Math.max(8, newLen * ui.beatPx - 2) + "px"; }
+      else { target = Math.max(0, barRound(o.start + db)); el.style.left = target * ui.beatPx + "px"; el.classList.toggle("copy", copy); }
+    };
+    const up = () => {
+      el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up);
+      if (!moved) { seek(m.start); return; }
+      if (resize) { mark(); m.len = newLen; render(); autosave(); } else moveSection(m, target, copy);
+    };
+    el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up);
+  });
+  return el;
+}
+
+/* ---------------------------------------------------------------- MIDI files (.mid) */
+const PPQ = 480;
+function vlq(n) { const out = [n & 0x7f]; while ((n >>= 7)) out.unshift((n & 0x7f) | 0x80); return out; }
+function smfTrack(events) {   // events: [{tick, data:[...]}] -> MTrk chunk bytes
+  events.sort((a, b) => a.tick - b.tick || a.order - b.order);
+  const body = []; let last = 0;
+  for (const e of events) { body.push(...vlq(Math.max(0, e.tick - last)), ...e.data); last = e.tick; }
+  body.push(0, 0xff, 0x2f, 0);
+  return [0x4d, 0x54, 0x72, 0x6b, (body.length >>> 24) & 255, (body.length >>> 16) & 255, (body.length >>> 8) & 255, body.length & 255, ...body];
+}
+const metaText = (type, text) => { const b = [...new TextEncoder().encode(text)]; return [0xff, type, ...vlq(b.length), ...b]; };
+/* flatten a track's regions (with loops) into absolute notes, the same way playback does */
+function trackNotes(t) {
+  const out = [];
+  for (const r of t.regions) if (r.notes) for (let k = 0; k < (r.loops || 1); k++) {
+    const base = r.start + k * r.len;
+    for (const n of r.notes) { if (n.s < 0 || n.s >= r.len) continue; out.push({ s: base + n.s, l: Math.max(0.01, Math.min(n.l, r.len - n.s)), p: n.p, v: n.v || 100 }); }
+  }
+  return out.sort((a, b) => a.s - b.s);
+}
+function buildMidiFile(tracks) {
+  const tick = (b) => Math.round(b * PPQ);
+  const conductor = [{ tick: 0, order: 0, data: metaText(0x03, P.name || "JAJA Studio") }];
+  for (const t of [{ b: 0, bpm: P.bpm }, ...tempoChanges()]) { const us = Math.round(60000000 / t.bpm); conductor.push({ tick: tick(t.b), order: 1, data: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] }); }
+  for (const sg of sigList()) conductor.push({ tick: tick(barStartBeat(sg.bar)), order: 2, data: [0xff, 0x58, 4, sg.num, Math.round(Math.log2(sg.den)), 24, 8] });
+  for (const m of P.markers || []) conductor.push({ tick: tick(m.start), order: 3, data: metaText(0x06, m.name) });
+  const chunks = [smfTrack(conductor)]; let ch = 0;
+  for (const t of tracks) {
+    const c = t.kind === "drums" ? 9 : [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15][ch++ % 15];
+    const ev = [{ tick: 0, order: 0, data: metaText(0x03, t.name) }];
+    for (const n of trackNotes(t)) {
+      ev.push({ tick: tick(n.s), order: 2, data: [0x90 | c, n.p & 127, clamp(Math.round(n.v), 1, 127)] });
+      ev.push({ tick: tick(n.s + n.l), order: 1, data: [0x80 | c, n.p & 127, 64] });
+    }
+    chunks.push(smfTrack(ev));
+  }
+  const head = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, (chunks.length >> 8) & 255, chunks.length & 255, (PPQ >> 8) & 255, PPQ & 255];
+  return new Uint8Array([...head, ...chunks.flat()]);
+}
+function parseMidiFile(u8) {
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), str = (o, n) => String.fromCharCode(...u8.subarray(o, o + n));
+  if (str(0, 4) !== "MThd") throw new Error("ไม่ใช่ไฟล์ MIDI");
+  const ntrk = v.getUint16(10), div = v.getUint16(12);
+  if (div & 0x8000) throw new Error("ไฟล์ MIDI แบบ SMPTE ยังไม่รองรับ");
+  let o = 8 + v.getUint32(4); const tracks = [], tempos = [], sigs = [], markers = [];
+  for (let ti = 0; ti < ntrk && o + 8 <= u8.length; ti++) {
+    if (str(o, 4) !== "MTrk") break;
+    const end = o + 8 + v.getUint32(o + 4); let p = o + 8, t = 0, run = 0, name = "";
+    const open = new Map(), notes = new Map();   // channel -> notes
+    const readV = () => { let n = 0, b; do { b = u8[p++]; n = (n << 7) | (b & 0x7f); } while (b & 0x80 && p < end); return n; };
+    while (p < end) {
+      t += readV();
+      let st = u8[p];
+      if (st & 0x80) p++; else st = run;
+      if (st === 0xff) {
+        const type = u8[p++], len = readV(), d = u8.subarray(p, p + len); p += len;
+        if (type === 0x03 && !name) name = new TextDecoder().decode(d);
+        else if (type === 0x51 && len === 3) tempos.push({ b: t / div, bpm: 60000000 / ((d[0] << 16) | (d[1] << 8) | d[2]) });
+        else if (type === 0x58 && len >= 2) sigs.push({ b: t / div, num: d[0], den: 2 ** d[1] });
+        else if (type === 0x06) markers.push({ b: t / div, name: new TextDecoder().decode(d) });
+        continue;
+      }
+      if (st === 0xf0 || st === 0xf7) { p += readV(); continue; }
+      run = st;
+      const cmd = st & 0xf0, c = st & 15, a = u8[p], b = u8[p + 1];
+      p += cmd === 0xc0 || cmd === 0xd0 ? 1 : 2;
+      const key = c * 128 + a;
+      if (cmd === 0x90 && b > 0) { if (open.has(key)) { const n = open.get(key); n.l = Math.max(0.01, t / div - n.s); open.delete(key); } const n = { s: t / div, l: 0.25, p: a, v: b }; open.set(key, n); if (!notes.has(c)) notes.set(c, []); notes.get(c).push(n); }
+      else if (cmd === 0x80 || (cmd === 0x90 && b === 0)) { const n = open.get(key); if (n) { n.l = Math.max(0.01, t / div - n.s); open.delete(key); } }
+    }
+    for (const [c, list] of notes) if (list.length) tracks.push({ name: name || "MIDI " + (tracks.length + 1), channel: c, notes: list });
+    o = end;
+  }
+  return { tracks, tempos, sigs, markers };
+}
+async function exportMidi() {
+  const tracks = P.tracks.filter((t) => t.kind !== "audio" && t.regions.some((r) => r.notes?.length));
+  if (!tracks.length) { toast("ยังไม่มีโน้ต MIDI ให้ส่งออก"); return; }
+  const data = buildMidiFile(tracks), name = safeName(P.name) + ".mid";
+  if (FS) { const p = await FS.saveFile(name, data.buffer, "mid"); if (p) toast("ส่งออก MIDI แล้ว: " + p, 4000); return; }
+  await offerFile(name, new Blob([data], { type: "audio/midi" }));
+}
+async function importMidi(file) {
+  let m;
+  try { m = parseMidiFile(new Uint8Array(await file.arrayBuffer())); } catch (e) { toast("เปิดไฟล์ MIDI ไม่ได้: " + e.message, 5000); return; }
+  if (!m.tracks.length) { toast("ไฟล์ MIDI นี้ไม่มีโน้ต"); return; }
+  mark();
+  const fresh = !P.tracks.some((t) => t.regions.length);
+  if (fresh) {   // empty project: take the file's tempo, signature and markers
+    const t0 = m.tempos.filter((t) => t.b < 1e-6).pop(); if (t0) P.bpm = Math.round(t0.bpm * 100) / 100;
+    P.tempos = m.tempos.filter((t) => t.b > 1e-6).map((t) => ({ b: t.b, bpm: Math.round(t.bpm * 100) / 100 }));
+    P.sigs = []; for (const sg of m.sigs) { const bar = barAt(sg.b).bar; P.sigs = sigList().filter((x) => x.bar !== bar).concat({ bar, num: sg.num, den: sg.den }); }
+    if (m.markers.length) P.markers = m.markers.map((x, i, a) => ({ id: uid(), name: x.name, start: barFloor(x.b), len: Math.max(barAt(x.b).len, (a[i + 1] ? barFloor(a[i + 1].b) : barCeil(Math.max(...m.tracks.flatMap((t) => t.notes.map((n) => n.s + n.l))))) - barFloor(x.b)), color: MARKER_COLORS[i % MARKER_COLORS.length] }));
+  }
+  const at = fresh ? 0 : barFloor(T.cursor);
+  let first = null;
+  for (const mt of m.tracks) {
+    const lo = Math.min(...mt.notes.map((n) => n.s)), hi = Math.max(...mt.notes.map((n) => n.s + n.l));
+    const rs = barFloor(lo), re = barCeil(hi), drums = mt.channel === 9, avg = mt.notes.reduce((a, n) => a + n.p, 0) / mt.notes.length;
+    const t = newTrack(drums ? "drums" : "synth", mt.name.slice(0, 28), { inst: drums ? null : avg < 48 ? "bass" : "keys" });
+    t.regions.push({ id: uid(), name: mt.name.slice(0, 28), start: at + rs, len: Math.max(1, re - rs), loops: 1, notes: mt.notes.map((n) => ({ s: n.s - rs, l: n.l, p: n.p, v: n.v })) });
+    P.tracks.push(t); if (M) addTrackChannel(M, t); first = first || t;
+  }
+  ui.trackId = first.id; ui.regionId = null; ui.sel.clear();
+  rebuildMix(); loadProjectUi(); render(); autosave();
+  toast(`นำเข้า MIDI ${m.tracks.length} แทร็ก จาก "${file.name}"`, 4000);
+}
+
+/* ---------------------------------------------------------------- stems: every track as its own WAV */
+let SOLO_OVERRIDE = null;
+async function exportStems() {
+  const tracks = P.tracks.filter((t) => !t.mute && t.regions.length);
+  if (!tracks.length) { toast("ยังไม่มีแทร็กให้ส่งออก"); return; }
+  const end = songEndBeats(), base = safeName(P.name), names = tracks.map((t, i) => `${String(i + 1).padStart(2, "0")} ${safeName(t.name)}.wav`);
+  if (T.playing) stop();
+  if (FS) {
+    const dir = await FS.pickFolder("เลือกโฟลเดอร์สำหรับเก็บ Stems"); if (!dir) return;
+    const sep = dir.includes("\\") ? "\\" : "/";
+    for (let i = 0; i < tracks.length; i++) {
+      toast(`กำลังส่งออก Stem ${i + 1}/${tracks.length}: ${tracks[i].name}`, 60000);
+      if (ENG.on) { engPush(true); const r = await engRequest({ cmd: "bounce", path: dir + sep + names[i], endBeat: end, tail: 3, track: tracks[i].id }, 30 * 60000); if (!r.ok) { toast("ส่งออกไม่สำเร็จ: " + r.error, 6000); return; } }
+      else { const buf = await renderMix(tracks[i].id); await FS.writeFileIn(dir, names[i], encodeWav([buf.getChannelData(0), buf.getChannelData(1)], buf.sampleRate).buffer); }
+    }
+    toast(`ส่งออก ${tracks.length} Stems แล้ว: ${dir}`, 6000); FS.showInFolder(dir + sep + names[0]);
+    return;
+  }
+  const files = [];
+  for (let i = 0; i < tracks.length; i++) { toast(`กำลังส่งออก Stem ${i + 1}/${tracks.length}`, 60000); const buf = await renderMix(tracks[i].id); files.push({ name: names[i], data: encodeWav([buf.getChannelData(0), buf.getChannelData(1)], buf.sampleRate) }); }
+  await offerFile(base + " - stems.zip", zip(files));
+}
+
+/* ---------------------------------------------------------------- audio on disk */
+async function persistAudio(id) {
+  const B = buffers.get(id); if (!B || !FS || P.media[id]) return;
+  try {
+    const chs = []; for (let c = 0; c < Math.min(2, B.buf.numberOfChannels); c++) chs.push(B.buf.getChannelData(c));
+    const path = await FS.writeAudio(id, encodeWav(chs, B.buf.sampleRate).buffer);
+    B.path = path; P.media[id] = path; autosave(true);
+  } catch (e) { toast("เขียนไฟล์เสียงลงดิสก์ไม่ได้: " + e.message, 6000); }
+}
+/* load every audio file the project refers to that is not in memory yet */
+async function loadMissingMedia() {
+  if (!FS) return;
+  const want = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.audioId).filter(Boolean)));
+  let n = 0, missing = 0;
+  for (const id of want) {
+    if (buffers.has(id)) continue;
+    const path = P.media[id]; if (!path) { missing++; continue; }
+    try { ensureCtx(); const u8 = await FS.readAudio(path); buffers.set(id, { buf: await ctx.decodeAudioData(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength)), name: id, path }); n++; }
+    catch (e) { missing++; }
+  }
+  if (n) { render(); engPush(); }
+  if (missing) toast(`หาไฟล์เสียงไม่พบ ${missing} ไฟล์`, 5000);
+}
+
 /* ---------------------------------------------------------------- files */
 function encodeWav(chs, sr) {
   const n = chs[0].length, nc = chs.length, buf = new ArrayBuffer(44 + n * nc * 2), v = new DataView(buf);
@@ -2213,20 +2592,24 @@ async function importAudio(files) {
     try {
       const buf = await ctx.decodeAudioData(await file.arrayBuffer());
       if (!did) { mark(); did = true; }
-      const id = uid(); buffers.set(id, { buf, name: file.name });
+      const id = uid(); buffers.set(id, { buf, name: file.name }); persistAudio(id);
       if (!t || t.kind !== "audio" || t.regions.length) { t = newTrack("audio", file.name.replace(/\.[^.]+$/, "").slice(0, 28), { color: "#e0479f" }); P.tracks.push(t); addTrackChannel(M, t); }
-      t.regions.push({ id: uid(), name: file.name.replace(/\.[^.]+$/, ""), start: Math.floor(T.cursor / 4) * 4, len: buf.duration / spb(), loops: 1, audioId: id, offset: 0 });
+      t.regions.push({ id: uid(), name: file.name.replace(/\.[^.]+$/, ""), start: barFloor(T.cursor), len: beatsFor(barFloor(T.cursor), buf.duration), loops: 1, audioId: id, offset: 0 });
       ui.trackId = t.id; ui.regionId = t.regions[t.regions.length - 1].id; ui.sel = new Set([ui.regionId]);
     } catch (e) { toast(`เปิดไฟล์ "${file.name}" ไม่ได้ ลองใช้ WAV หรือ MP3`); }
   }
   applyMix(); render(); autosave();
 }
-async function renderMix() {
+async function renderMix(onlyTrack) {
   const end = songEndBeats(); if (end <= 0) { toast("ยังไม่มีอะไรให้ส่งออก"); return null; }
-  const sr = 44100, secs = end * spb() + 3, oc = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
+  SOLO_OVERRIDE = onlyTrack || null;
+  try { return await renderMixInner(end); } finally { SOLO_OVERRIDE = null; }
+}
+async function renderMixInner(end) {
+  const sr = 44100, secs = secAt(end) + 3, oc = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
   const mix = buildMix(oc, oc.destination, { bpm: P.bpm });
   const env = { c: oc, bpm: P.bpm, tracks: P.tracks, mix, voices: [], sources: [], metro: false, first: true };
-  for (let b = 0; b < end + 1e-9; b += 0.25) scheduleRange(env, b, b + 0.25, b * spb());
+  for (let b = 0; b < end + 1e-9; b += 0.25) scheduleRange(env, b, b + 0.25, secAt(b));
   return oc.startRendering();
 }
 async function exportMix() {
@@ -2244,14 +2627,49 @@ async function exportMix() {
   const wav = encodeWav([res.getChannelData(0), res.getChannelData(1)], res.sampleRate), base = safeName(P.name);
   await offerFile(base + " - mix.zip", zip([{ name: base + " - mix.wav", data: wav }]), base + " - mix.wav", new Blob([wav], { type: "audio/wav" }));
 }
-async function saveProject() {
+async function saveProject(saveAs) {
   if (ENG.on) { try { const r = await engRequest({ cmd: "states" }, 30000); for (const k in r.states || {}) setPluginState(k, r.states[k]); } catch (e) {} }
+  if (FS) {
+    for (const id of buffers.keys()) if (!P.media[id]) await persistAudio(id);
+    const used = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.audioId).filter(Boolean)));
+    const media = Object.fromEntries(Object.entries(P.media).filter(([id]) => used.has(id)));
+    let r;
+    try { r = await FS.saveProject({ file: PROJ.file, name: P.name, json: JSON.stringify(P), media, saveAs: !!saveAs }); }
+    catch (e) { toast("บันทึกไม่สำเร็จ: " + e.message, 6000); return false; }
+    if (!r) return false;
+    P.media = { ...P.media, ...r.media };
+    for (const [id, path] of Object.entries(r.media)) { const B = buffers.get(id); if (B) B.path = path; }
+    PROJ.file = r.file; PROJ.recent = r.recent || PROJ.recent;
+    autosave(true); setDirty(false); engPush();
+    toast("บันทึกแล้ว: " + r.file, 3500);
+    return true;
+  }
   const files = [{ name: "project.json", data: new TextEncoder().encode(JSON.stringify(P)) }];
   for (const t of P.tracks) for (const r of t.regions) if (r.audioId && buffers.has(r.audioId) && !files.some((f) => f.name === "audio/" + r.audioId + ".wav")) {
     const b = buffers.get(r.audioId).buf, chs = []; for (let c = 0; c < Math.min(2, b.numberOfChannels); c++) chs.push(b.getChannelData(c));
     files.push({ name: "audio/" + r.audioId + ".wav", data: encodeWav(chs, b.sampleRate) });
   }
   await offerFile(safeName(P.name) + ".zip", zip(files));
+  setDirty(false); return true;
+}
+async function openProjectDialog(file) {
+  if (!FS) { $("#fileProj").click(); return; }
+  if (PROJ.dirty && P.tracks.length && !confirm("โปรเจกต์นี้ยังไม่ได้บันทึก เปิดโปรเจกต์อื่นเลยไหม?\n(กด Cancel แล้ว Ctrl+S เพื่อบันทึกก่อน)")) return;
+  let r;
+  try { r = await FS.openProject(file || null); } catch (e) { toast("เปิดไม่ได้: " + e.message, 5000); return; }
+  if (!r) return;
+  if (r.kind === "bytes") { await openProject(new File([r.data], r.name)); return; }
+  try {
+    const proj = JSON.parse(r.json);
+    if (!proj || !Array.isArray(proj.tracks)) throw new Error("ไม่ใช่ไฟล์โปรเจกต์ JAJA Studio");
+    if (T.playing) stop();
+    mark();
+    P = migrate(proj); PROJ.file = r.file; PROJ.recent = r.recent || PROJ.recent;
+    ui.trackId = P.tracks[0]?.id ?? null; ui.regionId = null; ui.sel.clear(); T.cursor = 0;
+    rebuildMix(); loadProjectUi(); render(); autosave(true); setDirty(false);
+    await loadMissingMedia();
+    toast(`เปิด "${P.name}" แล้ว` + (r.missing?.length ? ` · หาไฟล์เสียงไม่พบ ${r.missing.length} ไฟล์` : ""), 4000);
+  } catch (e) { toast("เปิดไฟล์ไม่ได้: " + e.message, 5000); }
 }
 async function openProject(file) {
   try {
@@ -2262,7 +2680,8 @@ async function openProject(file) {
     if (T.playing) stop();
     mark();
     for (const k in audio) if (k.startsWith("audio/")) { const id = k.slice(6, -4); buffers.set(id, { buf: await ctx.decodeAudioData(audio[k].slice().buffer), name: id }); }
-    P = migrate(proj); ui.trackId = P.tracks[0]?.id ?? null; ui.regionId = null; ui.sel.clear(); T.cursor = 0;
+    P = migrate(proj); P.media = {}; PROJ.file = null;
+    for (const k in audio) if (k.startsWith("audio/")) persistAudio(k.slice(6, -4)); ui.trackId = P.tracks[0]?.id ?? null; ui.regionId = null; ui.sel.clear(); T.cursor = 0;
     rebuildMix(); loadProjectUi(); render(); autosave(); toast(`เปิด "${P.name}" แล้ว`);
   } catch (e) { toast("เปิดไฟล์ไม่ได้: " + e.message, 5000); }
 }
@@ -2285,6 +2704,9 @@ function boot() {
   $("#mImport").onclick = () => $("#fileAudio").click();
   $("#mExport").onclick = () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message));
   $("#mSetup").onclick = openSetup;
+  $("#tempoAdd").onclick = () => { mark(); const a = barAt(T.cursor), b = a.bar > 0 ? a.start : barStartBeat(1); P.tempos = tempoChanges().filter((t) => Math.abs(t.b - b) > 1e-9).concat({ b, bpm: bpmAt(b) }); tempoEdited(); };
+  $("#sigAdd").onclick = () => { mark(); const bar = Math.max(1, barAt(T.cursor).bar); P.sigs = sigList().filter((x) => x.bar !== bar).concat({ bar, num: 3, den: 4 }); sigEdited(); };
+  document.addEventListener("contextmenu", (e) => { if (e.target.closest("#ruler")) { e.preventDefault(); openTempo(); } });
   $("#bPlay").onclick = togglePlay; $("#bStop").onclick = stop; $("#bHome").onclick = () => seek(0); $("#bRec").onclick = toggleRecord;
   $("#bUndo").onclick = undo; $("#bRedo").onclick = redo;
   $("#bCycle").onclick = () => { P.loop.on = !P.loop.on; updateLoopBand(); autosave(); };
@@ -2292,7 +2714,12 @@ function boot() {
   $("#bCount").onclick = () => { P.countIn = !P.countIn; $("#bCount").classList.toggle("on", P.countIn); autosave(); toast(P.countIn ? "นับ 1 บาร์ก่อนอัด: เปิด" : "นับ 1 บาร์ก่อนอัด: ปิด", 1500); };
   $("#bTyping").onclick = () => setTyping(!ui.typing);
   $("#bSetup").onclick = openSetup;
-  $("#bpm").onchange = (e) => { mark(); const was = T.playing; if (was) stop(); P.bpm = clamp(+e.target.value || 96, 40, 240); e.target.value = P.bpm; rebuildMix(); render(); autosave(); if (was) play(); };
+  $("#bpm").onchange = (e) => {
+    mark(); const was = T.playing; if (was) stop();
+    const v = clamp(+e.target.value || 96, 20, 300), at = tempoChanges().filter((t) => t.b <= T.cursor + 1e-9).pop();
+    if (at) at.bpm = v; else P.bpm = v;
+    e.target.value = v; rebuildMix(); render(); autosave(); if (was) play();
+  };
   $("#projName").onfocus = mark; $("#projName").oninput = (e) => { P.name = e.target.value; autosave(); };
   $("#addSynth").onclick = () => addTrack("synth"); $("#addDrums").onclick = () => addTrack("drums"); $("#addAudio").onclick = () => addTrack("audio");
   $("#bSplit").onclick = splitAtPlayhead; $("#bCopy").onclick = () => copyRegions(false); $("#bPaste").onclick = pasteRegions; $("#bQuant").onclick = quantizeSelected; $("#prQuant").onclick = quantizeSelected;
@@ -2311,16 +2738,17 @@ function boot() {
   $("#fxClose").onclick = () => $("#dlgFx").close();
   $("#dlgFx").addEventListener("close", () => { fxOpen = null; renderMixer(); renderInspector(); });
   $("#bImport").onclick = () => $("#fileAudio").click();
+  $("#fileMidi").onchange = (e) => { if (e.target.files[0]) importMidi(e.target.files[0]); e.target.value = ""; };
   $("#fileAudio").onchange = (e) => { if (e.target.files.length) importAudio([...e.target.files]); e.target.value = ""; };
   $("#bExport").onclick = () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message));
   $("#bSave").onclick = () => saveProject().catch((e) => toast("บันทึกไม่สำเร็จ: " + e.message));
-  $("#bOpen").onclick = () => $("#fileProj").click();
+  $("#bOpen").onclick = () => openProjectDialog();
   $("#fileProj").onchange = (e) => { if (e.target.files[0]) openProject(e.target.files[0]); e.target.value = ""; };
   const rz = $("#resizer"), bottom = $("#bottom"), savedH = lsGet("jaja-studio-bottom"); if (savedH) bottom.style.setProperty("--bottom-h", savedH);
   rz.addEventListener("pointerdown", (e) => { rz.setPointerCapture(e.pointerId); const y0 = e.clientY, h0 = bottom.getBoundingClientRect().height; const mv = (ev) => bottom.style.setProperty("--bottom-h", clamp(h0 + (y0 - ev.clientY), 220, window.innerHeight * 0.75) + "px"); const up = () => { rz.removeEventListener("pointermove", mv); rz.removeEventListener("pointerup", up); lsSet("jaja-studio-bottom", bottom.style.getPropertyValue("--bottom-h")); }; rz.addEventListener("pointermove", mv); rz.addEventListener("pointerup", up); });
   const sc = $("#arrScroll");
   sc.addEventListener("dragover", (e) => e.preventDefault());
-  sc.addEventListener("drop", (e) => { e.preventDefault(); const f = [...e.dataTransfer.files].filter((x) => x.type.startsWith("audio/") || /\.(wav|mp3|ogg|flac|m4a|aac)$/i.test(x.name)); if (f.length) importAudio(f); });
+  sc.addEventListener("drop", (e) => { e.preventDefault(); for (const m of [...e.dataTransfer.files].filter((x) => /\.midi?$/i.test(x.name))) importMidi(m); const f = [...e.dataTransfer.files].filter((x) => x.type.startsWith("audio/") || /\.(wav|mp3|ogg|flac|m4a|aac)$/i.test(x.name)); if (f.length) importAudio(f); });
   window.addEventListener("resize", () => { const hw = window.innerWidth < 640 ? 150 : 210; if (hw !== ui.hw) render(); });
   document.addEventListener("keyup", (e) => { if (ui.typing && !e.ctrlKey && !e.metaKey) { const k = TYPING[e.key.toLowerCase()]; if (k != null) liveOff(12 * (ui.octave + 1) + k); } });
   document.addEventListener("keydown", (e) => {
@@ -2329,8 +2757,8 @@ function boot() {
     if (mod && k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if (mod && k === "y") { e.preventDefault(); redo(); return; }
     if (mod && k === "k") { e.preventDefault(); setTyping(!ui.typing); return; }
-    if (mod && k === "s") { e.preventDefault(); saveProject(); return; }
-    if (mod && k === "o") { e.preventDefault(); $("#fileProj").click(); return; }
+    if (mod && k === "s") { e.preventDefault(); saveProject(e.shiftKey); return; }
+    if (mod && k === "o") { e.preventDefault(); openProjectDialog(); return; }
     if (mod && k === "n") { e.preventDefault(); newProject(); return; }
     if (mod && k === "b") { e.preventDefault(); exportMix().catch((er) => toast("ส่งออกไม่สำเร็จ: " + er.message)); return; }
     if (mod && !e.shiftKey && k === "i") { e.preventDefault(); $("#fileAudio").click(); return; }
@@ -2361,12 +2789,24 @@ function boot() {
     else if (e.key === "Escape") { toggleFileMenu(false); closeMenubar(); }
   });
   initMidi();
+  if (FS) {
+    FS.onSaveAndClose(async () => { if (await saveProject()) FS.closeNow(); });
+    FS.recent().then((l) => (PROJ.recent = l || [])).catch(() => {});
+    FS.setDirty(PROJ.dirty);
+    loadMissingMedia();
+    setInterval(() => { if (PROJ.dirty) autosave(true); }, 60000);
+  }
   if (ENG.api) {
     ENG.api.onEvent(engEvent);
     ENG.api.available().then((ok) => { ENG.exists = ok; if (ok && SET.engine === "pro") engOn(); }).catch(() => {});
   }
 }
-boot();
+(async () => {
+  if (FS) {
+    try { const a = JSON.parse((await FS.loadAutosave()) || "null"); if (a && a.P && Array.isArray(a.P.tracks)) { PRELOADED = a.P; PROJ.file = a.file || null; PROJ.dirty = !!a.dirty; } } catch (e) {}
+  }
+  boot();
+})();
 </script>
 
 </body>

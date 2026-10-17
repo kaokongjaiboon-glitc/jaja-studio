@@ -4,6 +4,10 @@ JAJA Studio 1.2
 2. ดับเบิลคลิก "JAJA Studio.exe"
 3. ครั้งแรก Windows อาจขึ้นหน้าจอสีฟ้า ให้กด More info แล้ว Run anyway
 
+บันทึกงาน
+- Ctrl+S ครั้งแรกจะถามชื่อเพลง แล้วสร้างโฟลเดอร์ Documents\JAJA Studio\<ชื่อเพลง> (มีไฟล์ .jaja + Audio Files)
+- ครั้งต่อไป Ctrl+S บันทึกทับได้เลย / Ctrl+Shift+S = บันทึกเป็นชื่อใหม่
+
 ใช้ ASIO + VST3 (JAJA Engine)
 - ติดตั้งไดรเวอร์ ASIO ของอินเทอร์เฟซก่อน (Behringer UMC202HD: "UMC Driver" จากเว็บ Behringer)
 - กดปุ่มรูปเฟือง (Audio Setup) > ระบบเสียง > เลือก "JAJA Engine · ASIO + VST3"

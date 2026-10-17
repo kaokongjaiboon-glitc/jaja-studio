@@ -73,6 +73,98 @@ ipcMain.handle("engine:savePath", async (_e, name) => {
   return r.canceled ? null : r.filePath;
 });
 
+/* ------------------------------------------------------------------ projects on disk
+   A project is a folder:  <Song>/<Song>.jaja  +  <Song>/Audio Files/*.wav
+   Audio is written to disk as soon as it is recorded or imported (session folder), and copied
+   into the project folder on save, so nothing lives only in memory. */
+const AUDIO_EXT = /\.(wav|wave|aif|aiff|flac|mp3|ogg|m4a|aac)$/i;
+const sessionAudioDir = () => { const d = path.join(app.getPath("userData"), "Session Audio"); fs.mkdirSync(d, { recursive: true }); return d; };
+const safeFile = (s) => String(s || "").replace(/[\\/:*?"<>|]+/g, " ").trim().slice(0, 80) || "JAJA";
+const recentFile = () => path.join(app.getPath("userData"), "recent.json");
+const autosaveFile = () => path.join(app.getPath("userData"), "autosave.json");
+async function writeAtomic(file, data) { const tmp = file + ".tmp"; await fs.promises.writeFile(tmp, data); await fs.promises.rename(tmp, file); }
+function readRecent() { try { return JSON.parse(fs.readFileSync(recentFile(), "utf8")).filter((r) => fs.existsSync(r.file)).slice(0, 8); } catch (e) { return []; } }
+function addRecent(file, name) { const list = [{ file, name, time: Date.now() }, ...readRecent().filter((r) => r.file !== file)].slice(0, 8); try { fs.writeFileSync(recentFile(), JSON.stringify(list)); } catch (e) {} return list; }
+
+ipcMain.handle("fs:writeAudio", async (_e, id, data) => {
+  const file = path.join(sessionAudioDir(), String(id).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40) + ".wav");
+  await writeAtomic(file, Buffer.from(data));
+  return file;
+});
+ipcMain.handle("fs:readAudio", async (_e, p) => {
+  if (typeof p !== "string" || !AUDIO_EXT.test(p)) throw new Error("not an audio file");
+  return fs.promises.readFile(p);
+});
+ipcMain.handle("fs:saveProject", async (_e, { file, name, json, media, saveAs }) => {
+  if (!file || saveAs) {
+    fs.mkdirSync(path.join(app.getPath("documents"), "JAJA Studio"), { recursive: true });
+    const r = await dialog.showSaveDialog(win, {
+      title: "บันทึกโปรเจกต์ JAJA Studio",
+      defaultPath: path.join(app.getPath("documents"), "JAJA Studio", safeFile(name)),
+      buttonLabel: "บันทึก",
+      properties: ["createDirectory", "showOverwriteConfirmation"],
+    });
+    if (r.canceled || !r.filePath) return null;
+    const base = r.filePath.replace(/\.jaja$/i, "");
+    file = path.join(base, path.basename(base) + ".jaja");   // the project gets its own folder
+  }
+  const dir = path.dirname(file), audioDir = path.join(dir, "Audio Files");
+  await fs.promises.mkdir(audioDir, { recursive: true });
+  const outMedia = {}, relMedia = {};
+  for (const [id, src] of Object.entries(media || {})) {
+    if (!src) continue;
+    const target = path.join(audioDir, id.replace(/[^a-zA-Z0-9_-]/g, "") + (path.extname(src) || ".wav"));
+    try {
+      if (path.resolve(src) !== path.resolve(target) && !fs.existsSync(target)) await fs.promises.copyFile(src, target);
+      outMedia[id] = target; relMedia[id] = path.relative(dir, target).split(path.sep).join("/");
+    } catch (e) { outMedia[id] = src; relMedia[id] = src; }   // keep the old reference if the copy failed
+  }
+  const proj = JSON.parse(json); proj.media = relMedia;
+  if (fs.existsSync(file)) { try { await fs.promises.copyFile(file, file + ".bak"); } catch (e) {} }
+  await writeAtomic(file, JSON.stringify(proj));
+  return { file, dir, media: outMedia, recent: addRecent(file, proj.name) };
+});
+ipcMain.handle("fs:openProject", async (_e, file) => {
+  if (!file) {
+    const r = await dialog.showOpenDialog(win, { title: "เปิดโปรเจกต์", defaultPath: path.join(app.getPath("documents"), "JAJA Studio"), properties: ["openFile"], filters: [{ name: "JAJA Studio", extensions: ["jaja", "zip", "json"] }] });
+    if (r.canceled || !r.filePaths[0]) return null;
+    file = r.filePaths[0];
+  }
+  if (!/\.jaja$/i.test(file)) return { kind: "bytes", file, name: path.basename(file), data: await fs.promises.readFile(file) };
+  const proj = JSON.parse(await fs.promises.readFile(file, "utf8")), dir = path.dirname(file), media = {}, missing = [];
+  for (const [id, rel] of Object.entries(proj.media || {})) {
+    const abs = path.isAbsolute(rel) ? rel : path.join(dir, rel);
+    if (fs.existsSync(abs)) media[id] = abs; else missing.push(rel);
+  }
+  proj.media = media;
+  return { kind: "jaja", file, dir, json: JSON.stringify(proj), missing, recent: addRecent(file, proj.name) };
+});
+ipcMain.handle("fs:recent", () => readRecent());
+ipcMain.handle("fs:autosave", async (_e, data) => { try { await writeAtomic(autosaveFile(), data); return true; } catch (e) { return false; } });
+ipcMain.handle("fs:loadAutosave", async () => { try { return await fs.promises.readFile(autosaveFile(), "utf8"); } catch (e) { return null; } });
+ipcMain.handle("fs:showInFolder", (_e, p) => { if (typeof p === "string" && fs.existsSync(p)) shell.showItemInFolder(p); });
+ipcMain.handle("fs:pickFolder", async (_e, title) => {
+  const r = await dialog.showOpenDialog(win, { title: String(title || "เลือกโฟลเดอร์"), defaultPath: app.getPath("music"), properties: ["openDirectory", "createDirectory"] });
+  return r.canceled ? null : r.filePaths[0];
+});
+ipcMain.handle("fs:writeFileIn", async (_e, dir, name, data) => {
+  if (typeof dir !== "string" || !fs.existsSync(dir)) throw new Error("folder not found");
+  const file = path.join(dir, safeFile(name).replace(/\.(wav|mid)$/i, "") + (/\.mid$/i.test(name) ? ".mid" : ".wav"));
+  await writeAtomic(file, Buffer.from(data));
+  return file;
+});
+ipcMain.handle("fs:saveFile", async (_e, name, data, ext) => {
+  const r = await dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath("music"), safeFile(name)), filters: [{ name: ext.toUpperCase(), extensions: [ext] }] });
+  if (r.canceled || !r.filePath) return null;
+  await writeAtomic(r.filePath, Buffer.from(data));
+  return r.filePath;
+});
+
+/* unsaved changes: ask before closing */
+let dirty = false, closing = false;
+ipcMain.on("fs:setDirty", (_e, v) => { dirty = !!v; });
+ipcMain.on("fs:closeNow", () => { closing = true; if (win) win.close(); });
+
 /* ------------------------------------------------------------------ window */
 function createWindow() {
   win = new BrowserWindow({
@@ -98,6 +190,13 @@ function createWindow() {
   // Ctrl+Shift+I opens developer tools (for troubleshooting)
   win.webContents.on("before-input-event", (e, input) => {
     if (input.control && input.shift && input.key.toLowerCase() === "i") win.webContents.toggleDevTools();
+  });
+  win.on("close", (e) => {
+    if (closing || !dirty) return;
+    const choice = dialog.showMessageBoxSync(win, { type: "question", buttons: ["บันทึก", "ไม่บันทึก", "ยกเลิก"], defaultId: 0, cancelId: 2, title: "JAJA Studio", message: "บันทึกการแก้ไขก่อนปิดไหม?", detail: "ถ้าไม่บันทึก การแก้ไขล่าสุดจะยังเปิดต่อได้ครั้งหน้า แต่ไม่ได้อยู่ในไฟล์โปรเจกต์" });
+    if (choice === 1) return;
+    e.preventDefault();
+    if (choice === 0) win.webContents.send("app:saveAndClose");
   });
   win.on("closed", () => { win = null; });
 }

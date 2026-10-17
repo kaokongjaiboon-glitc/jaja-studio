@@ -65,6 +65,8 @@ struct Channel
     juce::AudioBuffer<float> buf;
     juce::MidiBuffer midi;
     float curGain = -1, curM[4] { 1, 0, 0, 1 };
+    int latency = 0;                              // plugin latency of this channel (samples)
+    std::vector<float> pdc[2]; int pdcPos = 0;    // delay line that lines it up with the slowest track
     std::atomic<float> peakL { 0 }, peakR { 0 };
 };
 
@@ -106,7 +108,11 @@ public:
     juce::var takeMeters();
     juce::var pluginStates();
     std::shared_ptr<PluginSlot> findPlugin (const juce::String& key);
-    bool bounce (const juce::File& file, double endBeat, double tailSeconds, std::function<void (float)> progress, juce::String& error);
+    bool bounce (const juce::File& file, double endBeat, double tailSeconds, std::function<void (float)> progress, juce::String& error, const juce::String& onlyTrack = {});
+    double secAt (double beat) const;      // tempo map: song position in seconds
+    double bpmAt (double beat) const;
+    bool isBarStart (double beat) const;   // time-signature map
+    int getMaxLatency() const { return maxLatency; }
 
     double getBeat() const      { return beat.load(); }
     bool isPlaying() const      { return playing.load(); }
@@ -145,6 +151,12 @@ private:
     std::atomic<double> beat { 0 };
     std::atomic<bool> playing { false }, recording { false }, offline { false };
     double bpm = 96, loopStart = 0, loopEnd = 16, recStart = 0, clickUntil = -1.0e9;
+    std::vector<std::pair<double, double>> tempoMap { { 0.0, 96.0 } };   // (beat, bpm), sorted, first at 0
+    std::vector<std::pair<double, double>> barMap { { 0.0, 4.0 } };      // (start beat, bar length in beats) per signature segment
+    int maxLatency = 0;
+    juce::String soloOverride;   // stem bounce: only this track is heard
+    double nextTempoChange (double beat) const;
+    void applyPdc (Channel& c, int n);
     bool loopOn = false, metro = false, countIn = false;
     double blockBeat = 0;
 

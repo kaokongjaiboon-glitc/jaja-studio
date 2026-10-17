@@ -27,6 +27,47 @@ static juce::String projectJson (const juce::String& extraTrack = {})
       ]})";
 }
 
+// a stand-in for a VST plugin that delays the signal and reports that delay as latency
+struct LatencyPlugin : juce::AudioPluginInstance
+{
+    int d;
+    std::vector<float> line[2]; int pos = 0;
+    explicit LatencyPlugin (int delaySamples) : juce::AudioPluginInstance (BusesProperties().withInput ("In", juce::AudioChannelSet::stereo()).withOutput ("Out", juce::AudioChannelSet::stereo())), d (delaySamples)
+    { setLatencySamples (d); for (auto& l : line) l.assign ((size_t) d + 1, 0.0f); }
+    void fillInPluginDescription (juce::PluginDescription& pd) const override { pd.name = "Latency"; }
+    const juce::String getName() const override { return "Latency"; }
+    void prepareToPlay (double, int) override {}
+    void releaseResources() override {}
+    void processBlock (juce::AudioBuffer<float>& b, juce::MidiBuffer&) override
+    {
+        for (int i = 0; i < b.getNumSamples(); ++i, pos = (pos + 1) % (d + 1))
+            for (int c = 0; c < 2; ++c) { const float x = b.getSample (c, i); b.setSample (c, i, line[c][(size_t) pos]); line[c][(size_t) pos] = x; }
+    }
+    double getTailLengthSeconds() const override { return 0; }
+    bool acceptsMidi() const override { return false; }
+    bool producesMidi() const override { return false; }
+    juce::AudioProcessorEditor* createEditor() override { return nullptr; }
+    bool hasEditor() const override { return false; }
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram (int) override {}
+    const juce::String getProgramName (int) override { return {}; }
+    void changeProgramName (int, const juce::String&) override {}
+    void getStateInformation (juce::MemoryBlock&) override {}
+    void setStateInformation (const void*, int) override {}
+};
+
+static int firstOnset (const juce::File& f, double sr)
+{
+    juce::AudioFormatManager fm; fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> r (fm.createReaderFor (f));
+    if (! r) return -1;
+    juce::AudioBuffer<float> b (2, (int) r->lengthInSamples); r->read (&b, 0, b.getNumSamples(), 0, true, true);
+    for (int i = 0; i < b.getNumSamples(); ++i) if (std::abs (b.getSample (0, i)) > 0.01f) return i;
+    juce::ignoreUnused (sr);
+    return -1;
+}
+
 int main()
 {
     juce::ScopedJuceInitialiser_GUI init;
@@ -131,6 +172,41 @@ int main()
     e.play (0); run (0.5, pk, rms); e.stop();
     CHECK (pk > 0.0f, "live playback resumes after bounce");
 
+
+    // ---- tempo change: 120 bpm for 4 beats, then 60 bpm -> beat 6 is at 2 s + 2 s = 4 s
+    {
+        auto pj = juce::JSON::parse (projectJson().replace ("\"bpm\":120,", "\"bpm\":120,\"tempos\":[{\"b\":4,\"bpm\":60}],\"sigs\":[{\"bar\":0,\"num\":3,\"den\":4}],"));
+        e.setProject (pj);
+        CHECK (std::abs (e.secAt (6.0) - 4.0) < 1e-9, "tempo map: beat 6 at 4.0 s");
+        CHECK (e.isBarStart (3.0) && ! e.isBarStart (4.0) && e.isBarStart (6.0), "3/4 bar starts at beats 0, 3, 6");
+        e.play (0); run (3.0, pk, rms); 
+        std::printf ("      beat after 3 s with tempo change: %.3f\n", e.getBeat());
+        CHECK (std::abs (e.getBeat() - 5.0) < 0.02, "transport follows tempo change (3 s -> beat 5)");
+        e.stop(); run (0.5, pk, rms);
+        auto f = dir.getChildFile ("tempo.wav");
+        CHECK (e.bounce (f, 8.0, 0.0, nullptr, err), "bounce with tempo change");
+        juce::AudioFormatManager fm; fm.registerBasicFormats();
+        std::unique_ptr<juce::AudioFormatReader> r (fm.createReaderFor (f));
+        CHECK (r && std::abs ((double) r->lengthInSamples / sr - 6.0) < 0.02, "bounce length = 2 s + 4 s");
+    }
+
+    // ---- plugin delay compensation and stem bounce
+    {
+        e.pluginFactory = [] (const juce::String&, double, int, juce::String&) -> std::unique_ptr<juce::AudioPluginInstance> { return std::make_unique<LatencyPlugin> (1000); };
+        const juce::String two = R"(,{"id":"au2","kind":"audio","vol":0.7071,"pan":0,"fx":[{"id":"lat","type":"vst","on":true,"vst":{"pid":"fake"}}],"sends":{},"auto":{"on":{"vol":false,"pan":false},"vol":[],"pan":[]},
+           "regions":[{"start":4,"len":2,"loops":1,"audioId":"tone","offset":0,"gain":1}]})";
+        auto pj = juce::JSON::parse (projectJson (two));
+        e.setProject (pj);
+        CHECK (e.getMaxLatency() == 1000, "latency of the VST chain is detected (1000 samples)");
+        auto fa = dir.getChildFile ("stem-au.wav"), fb = dir.getChildFile ("stem-au2.wav");
+        CHECK (e.bounce (fa, 8.0, 0.5, nullptr, err, "au") && e.bounce (fb, 8.0, 0.5, nullptr, err, "au2"), "stem bounce of two tracks");
+        const int oa = firstOnset (fa, sr), ob = firstOnset (fb, sr);
+        std::printf ("      onset plain track %d, track with 1000-sample plugin %d (expected %d)\n", oa, ob, (int) (2.0 * sr));
+        CHECK (oa > 0 && std::abs (oa - ob) <= 2, "PDC lines up the delayed track with the plain one");
+        CHECK (std::abs (oa - (int) (2.0 * sr)) <= 8, "stem starts exactly at beat 4 (2 s)");
+        auto fd = dir.getChildFile ("stem-dr.wav");
+        CHECK (e.bounce (fd, 8.0, 0.5, nullptr, err, "dr") && firstOnset (fd, sr) >= 0 && firstOnset (fd, sr) < 100, "drum stem starts at 0");
+    }
     std::printf ("\n%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;
 }
