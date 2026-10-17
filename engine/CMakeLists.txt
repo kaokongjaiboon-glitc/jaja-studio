@@ -1,6 +1,6 @@
 # JAJA Engine — native audio engine for JAJA Studio (Windows: ASIO / WASAPI / DirectSound, VST3)
 cmake_minimum_required(VERSION 3.22)
-project(JAJAEngine VERSION 1.2.0 LANGUAGES C CXX)
+project(JAJAEngine VERSION 1.3.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # static MSVC runtime: the user does not need to install the Visual C++ redistributable
@@ -13,7 +13,7 @@ FetchContent_MakeAvailable(juce)
 juce_add_gui_app(JAJAEngine
   PRODUCT_NAME "JAJAEngine"
   COMPANY_NAME "JAJA"
-  VERSION 1.2.0
+  VERSION 1.3.0
   ICON_BIG ${CMAKE_CURRENT_SOURCE_DIR}/icon.png)
 
 target_sources(JAJAEngine PRIVATE src/Main.cpp src/Engine.cpp)
@@ -31,7 +31,7 @@ target_compile_definitions(JAJAEngine PRIVATE
   JUCE_USE_FLAC=1
   JUCE_USE_OGGVORBIS=1
   JUCE_APPLICATION_NAME_STRING="JAJAEngine"
-  JUCE_APPLICATION_VERSION_STRING="1.2.0")
+  JUCE_APPLICATION_VERSION_STRING="1.3.0")
 target_link_libraries(JAJAEngine
   PRIVATE juce::juce_audio_utils juce::juce_audio_processors juce::juce_audio_devices juce::juce_audio_formats
   PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags)

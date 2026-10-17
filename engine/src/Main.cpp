@@ -17,7 +17,7 @@
  static int rawWrite (const char* b, int n)   { return (int) ::write (1, b, (size_t) n); }
 #endif
 
-static const char* engineVersion = "1.2.0";
+static const char* engineVersion = "1.3.0";
 
 //==============================================================================
 static juce::CriticalSection outLock;
@@ -203,20 +203,61 @@ private:
         }
     }
 
+    // Tries to open a device setup. ASIO drivers such as ASIO4ALL sometimes refuse a setup the first time
+    // (a buffer size they were not configured for), so a failed attempt is retried once after closing the
+    // device, and if it still fails the last setup that worked is restored so the user is never left without audio.
+    juce::String openSetup (juce::AudioDeviceManager::AudioDeviceSetup setup)
+    {
+        auto err = deviceManager.setAudioDeviceSetup (setup, true);
+        if (err.isNotEmpty() || deviceManager.getCurrentAudioDevice() == nullptr)
+        {
+            deviceManager.closeAudioDevice();
+            juce::Thread::sleep (300);
+            err = deviceManager.setAudioDeviceSetup (setup, true);
+            if (err.isEmpty() && deviceManager.getCurrentAudioDevice() == nullptr) err = "เปิดอุปกรณ์ไม่ได้";
+        }
+        return err;
+    }
+
     juce::String applyDevice (const juce::String& type, const juce::String& output, const juce::String& input, double sampleRate, int bufferSize)
     {
+        // remember what worked before, to go back to it if the new setup fails
+        std::unique_ptr<juce::XmlElement> before (deviceManager.createStateXml());
+        const auto beforeType = deviceManager.getCurrentAudioDeviceType();
+        const bool hadDevice = deviceManager.getCurrentAudioDevice() != nullptr;
+
         if (type.isNotEmpty() && type != deviceManager.getCurrentAudioDeviceType())
             deviceManager.setCurrentAudioDeviceType (type, true);
+        wantedType = deviceManager.getCurrentAudioDeviceType();
         auto setup = deviceManager.getAudioDeviceSetup();
         const bool asio = deviceManager.getCurrentAudioDeviceType() == "ASIO";
         if (output.isNotEmpty()) setup.outputDeviceName = output;
+        wantedOutput = setup.outputDeviceName;
         setup.inputDeviceName = asio ? setup.outputDeviceName : (input == "-" ? juce::String() : (input.isNotEmpty() ? input : setup.inputDeviceName));
         if (sampleRate > 0) setup.sampleRate = sampleRate;
         if (bufferSize > 0) setup.bufferSize = bufferSize;
         setup.useDefaultInputChannels = false; setup.inputChannels.clear(); setup.inputChannels.setRange (0, 64, true);
         setup.useDefaultOutputChannels = false; setup.outputChannels.clear(); setup.outputChannels.setRange (0, 2, true);
-        const auto err = deviceManager.setAudioDeviceSetup (setup, true);
-        if (auto xml = deviceManager.createStateXml()) xml->writeTo (appDataDir().getChildFile ("engine-audio.xml"));
+
+        auto err = openSetup (setup);
+        if (err.isEmpty())
+        {
+            if (auto xml = deviceManager.createStateXml()) xml->writeTo (appDataDir().getChildFile ("engine-audio.xml"));
+            return {};
+        }
+
+        // failed: restore the previous working setup (same driver, same device) and report why
+        if (hadDevice && before != nullptr)
+        {
+            if (beforeType != deviceManager.getCurrentAudioDeviceType()) deviceManager.setCurrentAudioDeviceType (beforeType, true);
+            const auto restoreErr = deviceManager.initialise (64, 2, before.get(), true);
+            if (restoreErr.isEmpty() && deviceManager.getCurrentAudioDevice() != nullptr)
+            {
+                wantedType = beforeType;
+                wantedOutput = deviceManager.getAudioDeviceSetup().outputDeviceName;
+                return err + " — กลับไปใช้ค่าเดิมที่ใช้ได้";
+            }
+        }
         return err;
     }
 
@@ -248,7 +289,7 @@ private:
                          { "inputLatency", d->getInputLatencyInSamples() }, { "outputLatency", d->getOutputLatencyInSamples() },
                          { "hasPanel", d->hasControlPanel() } });
         }
-        return obj ({ { "types", types }, { "current", cur } });
+        return obj ({ { "types", types }, { "current", cur }, { "wantedType", wantedType }, { "wantedOutput", wantedOutput } });
     }
 
     juce::var pluginList()
@@ -420,6 +461,7 @@ private:
     };
 
     juce::AudioDeviceManager deviceManager;
+    juce::String wantedType, wantedOutput;   // what the user last asked for (kept even if the device would not open)
     juce::AudioPluginFormatManager formats;
     juce::KnownPluginList known;
     std::unique_ptr<juce::PluginDirectoryScanner> scanner;

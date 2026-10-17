@@ -66,6 +66,29 @@ button { cursor: pointer; }
 .tlist .trow { display: grid; grid-template-columns: 90px 1fr 26px; gap: 8px; align-items: center; font-size: 12.5px; }
 .tlist .trow .field { height: 26px; width: 100%; }
 .tlist .thead2 { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: .06em; }
+.se { display: flex; min-height: 0; gap: 0; }
+.se-left { flex: none; width: 352px; display: flex; gap: 12px; padding: 6px 12px 8px 2px; overflow-y: auto; max-height: calc(var(--bottom-h, 42vh) - 56px); }
+.se-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.se-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.se-scroll { overflow-x: auto; }
+.se-head { display: flex; align-items: center; gap: 14px; padding: 5px 8px; margin: 0 0 4px; background: #26272b; border-radius: 6px; font: 12px var(--mono); color: var(--fg-2); white-space: nowrap; overflow: hidden; }
+.se-head b { color: var(--fg); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.se-sp { flex: 1; }
+.se-warp { height: 26px; border-radius: 5px; border: 1px solid #0c0d0f; background: #3a3b40; color: var(--fg-2); font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.se-warp.on { background: #f2b630; color: #1a1500; border-color: #a77a10; }
+.se-sel, .se-num { height: 24px; font-size: 12px; min-width: 0; }
+.se-row { display: flex; gap: 5px; align-items: center; } .se-row > * { min-width: 0; }
+.se-row .btn { flex: 1; } .se-env, .se-bpmnum { flex: 1; width: 0; } .se-cents { width: 54px; flex: none; }
+.se-f { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--fg-3); }
+.se-bpm { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--fg-3); } .se-bpm small, .se-hint, .se-p small { font-size: 10.5px; color: var(--fg-3); }
+.se-hint { margin: 2px 0; line-height: 1.35; }
+.se-tog.on { background: #f2b630 !important; color: #1a1500 !important; border-color: #a77a10 !important; }
+.se-gp { display: flex; gap: 14px; align-items: flex-start; }
+.se-g, .se-p { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--fg-3); }
+.se-p { flex: 1; align-items: stretch; }
+.se-gain { writing-mode: vertical-lr; direction: rtl; height: 96px; width: 18px; }
+.se-db { font: 11px var(--mono); color: var(--fg-2); text-align: center; }
+.se-pitch { width: 100%; }
 .ae-info { display: flex; gap: 14px; flex-wrap: wrap; font: 11.5px var(--mono); color: var(--fg-2); padding: 4px 2px 6px; }
 .ae-wrap { display: flex; min-width: 0; }
 .ae-names { flex: none; width: 110px; display: flex; flex-direction: column; }
@@ -259,6 +282,23 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .inmeters { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; font: 11px var(--mono); color: var(--fg-2); }
 .inmeters i { display: block; height: 8px; border-radius: 3px; background: #17181b; overflow: hidden; }
 .inmeters b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2fb35f 0 70%, #e5c33a 85%, #e5484d); }
+.menu-pop .ttabs { display: flex; gap: 2px; padding: 2px; margin: 0 0 4px; border-radius: 7px; background: #1d1e21; }
+.menu-pop .ttab { flex: 1; text-align: center !important; padding: 5px 8px !important; font-size: 12px !important; color: var(--fg-2); }
+.menu-pop .ttab.on { background: #3a3c42 !important; color: #fff; }
+.menu-pop .tgrid { display: flex; flex-direction: column; gap: 3px; padding: 2px; }
+.menu-pop .toolbtn { display: grid !important; grid-template-columns: 22px 1fr; column-gap: 9px; align-items: center; padding: 6px 9px !important; border: 1px solid transparent !important; background: #26272b !important; }
+.menu-pop .toolbtn .tico { grid-row: 1 / span 2; justify-self: center; }
+.menu-pop .toolbtn:hover { background: #3c5f8f !important; }
+.menu-pop .toolbtn.on { border-color: #6aa6ff !important; background: #2f4a73 !important; }
+.menu-pop .toolbtn b { font-size: 12.5px; font-weight: 600; }
+.menu-pop .toolbtn small { font-size: 10.5px; color: var(--fg-3); line-height: 1.25; white-space: normal; grid-column: 2; }
+.menu-pop .tico { display: inline-flex; color: #cfd6e4; }
+.btn#bTool { display: inline-flex; align-items: center; gap: 5px; }
+body[data-tool="scissors"] .region { cursor: crosshair; }
+body[data-tool="glue"] .region { cursor: copy; }
+body[data-tool="fade"] .region { cursor: ew-resize; }
+body[data-tool="xfade"] .region { cursor: col-resize; }
+body[data-tool="stretch"] .region { cursor: e-resize; }
 .menu-pop .mlabel { padding: 6px 10px 2px; font-size: 10.5px; color: var(--fg-3); text-transform: uppercase; letter-spacing: .06em; }
 .stat { display: flex; gap: 14px; flex-wrap: wrap; font: 12px var(--mono); color: var(--lcd); }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70; max-width: min(560px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 9px; background: #0d0e10; border: 1px solid #3a3c41; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
@@ -345,6 +385,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
         <button class="btn small" id="addAudio">+ Audio</button>
         <span class="lbl" style="margin-left:8px">แก้ไข</span>
         <div class="grp">
+          <button class="btn small" id="bTool" title="เครื่องมือ — คลิกขวาบน Arrange เพื่อเปลี่ยน"></button>
           <button class="btn small" id="bSplit" title="ตัด region ที่หัวเล่น (Ctrl+T)">ตัด</button>
           <button class="btn small" id="bCopy" title="คัดลอก (Ctrl+C)">คัดลอก</button>
           <button class="btn small" id="bPaste" title="วางที่หัวเล่น (Ctrl+V)">วาง</button>
@@ -367,7 +408,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       <div class="seg" role="tablist">
         <button id="tabMixer" class="on" role="tab">Mixer</button>
         <button id="tabRoll" role="tab">Piano Roll</button>
-        <button id="tabAudio" role="tab">Audio Editor</button>
+        <button id="tabAudio" role="tab">Sample Editor</button>
       </div>
       <span id="paneHint" style="color:var(--fg-3);font-size:12px"></span>
       <span style="flex:1"></span>
@@ -377,7 +418,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
         <button class="btn small" id="aeFin">Fade In</button><button class="btn small" id="aeFout">Fade Out</button>
         <button class="btn small" id="aeNorm">Normalize</button><button class="btn small" id="aeRev">Reverse</button>
         <button class="btn small" id="aeStrip">Strip Silence</button>
-        <button class="btn small" id="aeFlexT">Flex Time</button><button class="btn small" id="aeFlexP">Flex Pitch</button>
+        <button class="btn small" id="aeFlexP" title="จูนเสียงร้องเข้าคีย์ของเพลง (ใช้เมื่อปิด Warp)">Flex Pitch</button>
         <button class="btn small" id="aeZoomOut" aria-label="ซูมออก">−</button><button class="btn small" id="aeZoomIn" aria-label="ซูมเข้า">+</button>
       </span>
       <span id="rollTools" hidden style="display:flex;gap:8px;align-items:center">
@@ -519,9 +560,9 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 <script>
 "use strict";
 /* ======================================================================
-   JAJA Studio v1.2 — a small DAW in one file
+   JAJA Studio v1.3 — a small DAW in one file
    ====================================================================== */
-const VERSION = "1.2";
+const VERSION = "1.3";
 const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -1433,10 +1474,10 @@ function engSetupFill() {
   const d = ENG.dev, cur = d?.current || {};
   const opt = (sel, list, value, label) => { sel.replaceChildren(...list.map((x) => h("option", { value: x, selected: String(x) === String(value) }, label ? label(x) : x))); };
   if (!d) { $("#eStat").textContent = "กำลังเชื่อมต่อ JAJA Engine…"; return; }
-  const typeName = cur.type || d.types[0]?.name || "";
+  const typeName = cur.type || d.wantedType || d.types[0]?.name || "";
   opt($("#eType"), d.types.map((x) => x.name), typeName, (x) => (x === "ASIO" ? "ASIO (แนะนำ)" : x));
   const type = d.types.find((x) => x.name === typeName) || { outputs: [], inputs: [] };
-  opt($("#eDev"), type.outputs.length ? type.outputs : [""], cur.output || cur.name, (x) => x || "ไม่พบอุปกรณ์");
+  opt($("#eDev"), type.outputs.length ? type.outputs : [""], cur.output || cur.name || d.wantedOutput, (x) => x || "ไม่พบอุปกรณ์");
   $("#eInWrap").hidden = typeName === "ASIO";
   opt($("#eIn"), ["-", ...type.inputs], cur.input || "-", (x) => (x === "-" ? "ไม่ใช้ (เล่นอย่างเดียว)" : x));
   const sr = cur.sampleRate || 0, bs = cur.bufferSize || 0;
@@ -1444,7 +1485,7 @@ function engSetupFill() {
   opt($("#eBs"), cur.bufferSizes?.length ? cur.bufferSizes : [bs], bs, (x) => `${x} samples (${sr ? ((x / sr) * 1000).toFixed(1) : "?"} ms)`);
   const ms = (n) => (sr ? ((n / sr) * 1000).toFixed(1) : "?") + " ms";
   $("#eStat").replaceChildren(
-    h("span", {}, cur.name ? cur.name : "ยังไม่ได้เปิดอุปกรณ์"),
+    h("span", {}, cur.name ? cur.name : "ยังไม่ได้เปิดอุปกรณ์" + (ENG.lastErr ? " — " + ENG.lastErr : "")),
     h("span", {}, `In ${cur.inputs?.length || 0} · Out ${cur.outputs?.length || 0}`),
     h("span", {}, "Latency in " + ms(cur.inputLatency || 0) + " / out " + ms(cur.outputLatency || 0)));
   $("#eAsio").disabled = !cur.hasPanel;
@@ -1464,8 +1505,8 @@ async function engSetDevice(change) {
   $("#eStat").textContent = "กำลังเปิดอุปกรณ์…";
   try {
     const r = await engRequest(args, 30000);
-    ENG.dev = r; engSetupFill(); renderMixer(); renderInspector();
-    if (r.error) toast("เปิดอุปกรณ์ไม่ได้: " + r.error, 6000);
+    ENG.dev = r; ENG.lastErr = r.error || ""; engSetupFill(); renderMixer(); renderInspector();
+    if (r.error) toast("เปิดอุปกรณ์ไม่ได้: " + r.error, 8000);
   } catch (e) { toast(e.message); }
 }
 function setupMode() {
@@ -1582,6 +1623,7 @@ function renderArrange() {
     const lane = h("div", { class: "lane", "data-track": t.id, style: `background-color:${i % 2 ? "var(--lane-alt)" : "var(--lane)"};${gridBg}` });
     lane.addEventListener("dblclick", (e) => { if (e.target === lane) createRegionAt(t, e.offsetX); });
     lane.addEventListener("pointerdown", (e) => { if (e.target === lane) lightSelect(t.id, null); });
+    lane.addEventListener("contextmenu", (e) => { if (e.target === lane) toolMenu(e, t, null, e.offsetX / ui.beatPx); });
     for (const r of t.regions) lane.append(regionEl(t, r));
     g.append(lane);
     if (t.auto.show) { g.append(autoHeadEl(t)); g.append(autoLaneEl(t, W)); }
@@ -1712,13 +1754,38 @@ const snapBeat = (b, fine) => { const s = fine ? 0.25 : snapVal(); if (s === 4) 
 function regionPointer(e, t, r, el) {
   if (e.button !== 0) return;
   e.preventDefault();
-  const cls = e.target.classList, mode = cls.contains("fadeh") ? (cls.contains("in") ? "fadein" : "fadeout") : cls.contains("looph") ? "loop" : cls.contains("grip") ? (cls.contains("l") ? "trim" : "resize") : "move";
+  const cls = e.target.classList; let mode = cls.contains("fadeh") ? (cls.contains("in") ? "fadein" : "fadeout") : cls.contains("looph") ? "loop" : cls.contains("grip") ? (cls.contains("l") ? "trim" : "resize") : "move";
+  let stretchTool = false;
+  const tool = ui.tool || "pointer";
+  if (tool !== "pointer") {
+    const rc = el.getBoundingClientRect(), fx = (e.clientX - rc.left) / Math.max(1, rc.width), audioOnly = tool === "fade" || tool === "xfade" || tool === "stretch";
+    if (audioOnly && t.kind !== "audio") { toast("เครื่องมือนี้ใช้กับ region เสียงเท่านั้น (คลิกขวาเพื่อเปลี่ยนเครื่องมือ)"); return; }
+    if (tool === "scissors") {
+      const c = snapBeat(r.start + (e.clientX - rc.left) / ui.beatPx, e.shiftKey);
+      if (c <= r.start + 1e-6 || c >= rEnd(r) - 1e-6) { toast("คลิกกลาง region เพื่อตัด"); return; }
+      mark(); const ids = []; cutRegions([{ t, r }], c, ids); ui.sel = new Set(ids); ui.regionId = ids[0] || null; render(); autosave(); return;
+    }
+    if (tool === "glue") {
+      const next = t.regions.filter((x) => x !== r && x.start >= r.start).sort((a, b) => a.start - b.start)[0];
+      if (!next) { toast("ไม่มี region ถัดไปในแทร็กนี้"); return; }
+      ui.sel = new Set([r.id, next.id]); ui.regionId = r.id; joinRegions(); return;
+    }
+    if (tool === "xfade") {
+      const gap = 0.26, left = fx < 0.5, a0 = left ? t.regions.find((x) => x !== r && Math.abs(rEnd(x) - r.start) <= gap) : r, b0 = left ? r : t.regions.find((x) => x !== r && Math.abs(x.start - rEnd(r)) <= gap);
+      if (!a0 || !b0) { toast("ไม่พบ region ที่อยู่ติดกันตรงรอยต่อนี้"); return; }
+      const xs = e.clientX;
+      const up = (ev) => { window.removeEventListener("pointerup", up); const dx = Math.abs(ev.clientX - xs) / ui.beatPx, sec = dx * ui.beatPx > 6 ? Math.max(0.01, secAt(b0.start + dx) - secAt(b0.start)) : 0.05; ui.sel = new Set([a0.id, b0.id]); ui.regionId = a0.id; crossfadeSelected(sec); };
+      window.addEventListener("pointerup", up); return;
+    }
+    if (tool === "fade") mode = fx < 0.5 ? "fadein" : "fadeout";
+    if (tool === "stretch") { mode = "resize"; stretchTool = true; }
+  }
   if (e.shiftKey || e.ctrlKey || e.metaKey) { lightSelect(t.id, r.id, true); return; }
   if (!ui.sel.has(r.id)) { ui.noteSel = -1; lightSelect(t.id, r.id); } else { ui.regionId = r.id; ui.trackId = t.id; renderInspector(); }
   const group = mode === "move" ? [...ui.sel].map(findRegion).filter(Boolean) : [{ t, r }];
   const orig = group.map((f) => ({ f, start: f.r.start, len: f.r.len, loops: f.r.loops || 1, offset: f.r.offset || 0, notes: f.r.notes && f.r.notes.map((n) => n.s) }));
   const x0 = e.clientX, snap = JSON.stringify(P); let moved = false;
-  el.setPointerCapture(e.pointerId);
+  const laneEls = [...document.querySelectorAll(".lane[data-track]")], laneIds = laneEls.map((l) => l.dataset.track);   // regions can be dragged to other tracks
   const mv = (ev) => {
     const db = (ev.clientX - x0) / ui.beatPx;
     if (!moved && Math.abs(ev.clientX - x0) < 3) return;
@@ -1731,7 +1798,7 @@ function regionPointer(e, t, r, el) {
       drawRegionPreview(el.querySelector("canvas"), t, r);
       return;
     }
-    if (mode === "resize" && ev.altKey && t.kind === "audio") { r.len = Math.max(0.25, snapBeat(o.len + db, ev.shiftKey)); el.classList.add("stretching"); }
+    if (mode === "resize" && (ev.altKey || stretchTool) && t.kind === "audio") { r.len = Math.max(0.25, snapBeat(o.len + db, ev.shiftKey)); el.classList.add("stretching"); }
     else if (mode === "resize") { r.len = Math.max(0.25, snapBeat(o.len + db / o.loops, ev.shiftKey)); }
     else if (mode === "loop") { r.loops = Math.max(1, Math.round((o.len * o.loops + db) / o.len)); }
     else if (mode === "trim") {
@@ -1739,19 +1806,38 @@ function regionPointer(e, t, r, el) {
       r.start = o.start + d; r.len = o.len - d;
       if (r.notes) r.notes.forEach((n, i) => (n.s = o.notes[i] - d));
       if (r.audioId) r.offset = Math.max(0, o.offset + secAt(o.start + d) - secAt(o.start));
-    } else for (const x of orig) x.f.r.start = Math.max(0, snapBeat(x.start + db, ev.shiftKey));
-    for (const x of orig) { const node = document.querySelector(`[data-region="${x.f.r.id}"]`); if (node) { node.style.left = x.f.r.start * ui.beatPx + "px"; node.style.width = Math.max(6, x.f.r.len * ui.beatPx) * (x.f.r.loops || 1) + "px"; } }
+    } else {
+      for (const x of orig) x.f.r.start = Math.max(0, snapBeat(x.start + db, ev.shiftKey));
+      // vertical: which track is the pointer over? every selected region moves by the same number of tracks (same kind only)
+      const li = laneEls.findIndex((l) => { const b = l.getBoundingClientRect(); return ev.clientY >= b.top && ev.clientY < b.bottom; });
+      if (li >= 0) {
+        const d = li - laneIds.indexOf(t.id);
+        for (const x of orig) { const to = clamp(laneIds.indexOf(x.f.t.id) + d, 0, laneIds.length - 1), tt = trackById(laneIds[to]); x.tgt = tt && tt.kind === x.f.t.kind ? tt : x.f.t; }
+      }
+    }
+    for (const x of orig) {
+      const node = document.querySelector(`[data-region="${x.f.r.id}"]`);
+      if (node) {
+        node.style.left = x.f.r.start * ui.beatPx + "px"; node.style.width = Math.max(6, x.f.r.len * ui.beatPx) * (x.f.r.loops || 1) + "px";
+        const want = laneEls[laneIds.indexOf((x.tgt || x.f.t).id)];
+        if (want && node.parentElement !== want) { want.append(node); node.style.zIndex = 5; }
+      }
+    }
   };
   const up = () => {
-    el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
+    window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
     if (moved) {
+      if (mode === "move") {
+        for (const x of orig) if (x.tgt && x.tgt !== x.f.t) { x.f.t.regions = x.f.t.regions.filter((q) => q !== x.f.r); x.tgt.regions.push(x.f.r); }
+        const pt = orig.find((x) => x.f.r === r); if (pt && pt.tgt) ui.trackId = pt.tgt.id;
+      }
       if (mode === "trim" && r.notes) r.notes = r.notes.filter((n) => n.s >= 0 || n.s + n.l > 0).map((n) => (n.s < 0 ? Object.assign(n, { l: n.l + n.s, s: 0 }) : n));
       if (mode === "trim" && r.takes) { const d = r.start - orig[0].start; for (const tk of r.takes) tk.rs -= d; for (const c of r.comp || []) { c.a -= d; c.b -= d; } }
       autosave(); render();
       if (el.classList.contains("stretching")) flexStretchTo(r, orig[0].len);   // Alt + drag the end = Flex Time
     }
   };
-  el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
 }
 function createRegionAt(t, px) {
   if (t.kind === "audio") { ui.trackId = t.id; $("#fileAudio").click(); return; }
@@ -1815,6 +1901,7 @@ function splitOne(t, r, c, ids) {
   if (r.audioId) right.offset = (r.offset || 0) + secAt(r.start + cut) - secAt(r.start);
   if (r.takes) { for (const tk of right.takes) tk.rs -= cut; right.comp = (r.comp || []).filter((c) => c.b > cut).map((c) => ({ ...c, a: Math.max(0, c.a - cut), b: c.b - cut })); r.comp = (r.comp || []).filter((c) => c.a < cut).map((c) => ({ ...c, b: Math.min(c.b, cut) })); }
   if (r.fadeOut) { right.fadeOut = r.fadeOut; r.fadeOut = 0; } right.fadeIn = 0;
+  if (r.warp) { delete r.warp; delete right.warp; }   // the halves become plain audio
   r.len = cut; t.regions.push(right); ids.push(right.id);
 }
 function quantizeSelected() {
@@ -2108,7 +2195,7 @@ const MENUS = () => ({
     ["Inspector", "I", toggleInspector, null, () => !document.body.classList.contains("no-inspector")],
     ["Mixer", "X", () => showPane("mixer"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "mixer"],
     ["Piano Roll", "P", () => showPane("roll"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "roll"],
-    ["Audio Editor", "E", () => showPane("audio"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "audio"],
+    ["Sample Editor", "E", () => showPane("audio"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "audio"],
   ],
   Window: [
     ["เพิ่มท่อน (Arrangement Marker)", "", () => addMarker()],
@@ -2169,7 +2256,7 @@ const HELP_KEYS = [["Space", "เล่น / หยุด"], ["Enter", "ไป�
   ["Ctrl+K", "Musical Typing (Z/X = อ็อกเทฟ)"], ["Ctrl+N", "โปรเจกต์ใหม่"], ["Ctrl+O", "เปิดโปรเจกต์"], ["Ctrl+S", "บันทึก (ทับไฟล์เดิม)"], ["Ctrl+Shift+S", "บันทึกเป็น…"], ["คลิกขวาที่ไม้บรรทัด", "Tempo & Signature"], ["Alt+ลากป้ายท่อน", "คัดลอกทั้งท่อน"], ["Ctrl+I", "นำเข้าเสียง"], ["Ctrl+B", "Bounce ส่งออก WAV"]];
 /* Tempo & Signature list */
 function openTempo() { renderTempoRows(); if (!$("#dlgTempo").open) $("#dlgTempo").showModal(); }
-function tempoEdited() { P.tempos = tempoChanges(); rebuildMix(); render(); autosave(); renderTempoRows(); }
+function tempoEdited() { P.tempos = tempoChanges(); rebuildMix(); render(); autosave(); renderTempoRows(); rewarpAll(); }
 function renderTempoRows() {
   const num = (v, min, max, on) => h("input", { class: "field", type: "number", min, max, step: "any", value: v, onfocus: mark, onchange: (e) => on(+e.target.value) });
   const del = (fn) => h("button", { type: "button", class: "btn small", "aria-label": "ลบ", onclick: () => { mark(); fn(); } }, "×");
@@ -2466,8 +2553,10 @@ function normalizeRegions() {
 }
 function reverseRegions() {
   const s = needAudioSel().filter(({ r }) => !r.takes); if (!s.length) { toast("Reverse ใช้กับ region เสียงธรรมดา (ไม่ใช่ Take Folder)"); return; }
+  const wr = s.find(({ r }) => r.warp?.on); if (wr) { warpReverse(wr.r); if (s.length === 1) return; }
   mark();
   for (const { r } of s) {
+    if (r.warp?.on) continue;
     const x = regionSamples(r); if (!x) continue;
     x.chs.forEach((d) => d.reverse());
     r.audioId = newBuffer(x.chs, x.sr, (r.name || "Audio") + " rev"); r.offset = 0; r.name = (r.name || "Audio") + " (Rev)";
@@ -2523,19 +2612,41 @@ function flattenTakes(r, t) {
   t.regions = t.regions.filter((x) => x !== r).concat(parts);
   ui.sel = new Set(parts.map((x) => x.id)); ui.regionId = parts[0]?.id || null; render(); autosave(); toast("Flatten: แปลง Take Folder เป็น region ธรรมดาแล้ว");
 }
-function regionMenu(e, t, r) {
-  e.preventDefault(); e.stopPropagation(); closeMenu();
-  if (!ui.sel.has(r.id)) lightSelect(t.id, r.id);
+/* ---------------------------------------------------------------- edit tools
+   Right-click on the arrange area opens a small panel with two tabs: "เครื่องมือ" (pick the tool the mouse acts as)
+   and "คำสั่ง" (commands for the region under the pointer). */
+const TOOLS = [
+  { id: "pointer", name: "ลูกศร", en: "Pointer", hint: "เลือก ย้าย ลากขอบเพื่อตัดต้น/ปลาย", svg: '<path d="M3 2l9 6.2-4 1-2.2 4z"/>' },
+  { id: "scissors", name: "กรรไกร (ตัด)", en: "Scissors", hint: "คลิกที่ region เพื่อตัดตรงจุดนั้น (Snap ตามตาราง, Shift = ละเอียด)", svg: '<circle cx="4" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><path d="M5.2 10.4L11 2.5M10.8 10.4L5 2.5"/>' },
+  { id: "glue", name: "กาว (เชื่อม)", en: "Glue", hint: "คลิกที่ region เพื่อเชื่อมกับ region ถัดไปในแทร็กเดียวกัน", svg: '<path d="M1.5 5h5v6h-5zM9.5 5h5v6h-5z"/><path d="M6.5 8h3"/>' },
+  { id: "fade", name: "Fade", en: "Fade", hint: "ลากบน region (ครึ่งซ้าย = Fade In, ครึ่งขวา = Fade Out)", svg: '<path d="M2 13L14 3"/><path d="M2 13h12"/>' },
+  { id: "xfade", name: "Crossfade (X)", en: "Crossfade", hint: "คลิกใกล้รอยต่อของ 2 region เพื่อ Crossfade (ลากเพื่อกำหนดความยาว)", svg: '<path d="M2 3l12 10M2 13L14 3"/>' },
+  { id: "stretch", name: "Time Stretch", en: "Time Stretch", hint: "ลากบน region เพื่อยืด/หดเวลาโดยคีย์ไม่เปลี่ยน", svg: '<path d="M2 8h12M2 8l3-3M2 8l3 3M14 8l-3-3M14 8l-3 3"/>' },
+];
+ui.tool = "pointer"; ui.toolTab = "tools";
+const toolIcon = (x) => { const s = h("span", { class: "tico" }); s.innerHTML = `<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${x.svg}</svg>`; return s; };
+function setTool(id, quiet) {
+  const x = TOOLS.find((q) => q.id === id) || TOOLS[0]; ui.tool = x.id; document.body.dataset.tool = x.id;
+  const b = $("#bTool"); if (b) { b.replaceChildren(toolIcon(x), h("span", {}, x.name.split(" ")[0])); b.title = "เครื่องมือ: " + x.name + " — คลิกขวาบน Arrange เพื่อเปลี่ยน"; b.classList.toggle("on", x.id !== "pointer"); }
+  if (!quiet) toast("เครื่องมือ: " + x.name + (x.id === "pointer" ? "" : " — " + x.hint), 3800);
+}
+function commandItems(t, r, atBeat) {
   const item = (label, fn, key) => h("button", { role: "menuitem", onclick: () => { closeMenu(); fn(); } }, label, key ? h("kbd", {}, key) : null);
+  if (!r) return [
+    h("div", { class: "mlabel" }, t ? t.name : "Arrange"),
+    item("วาง (Paste) ที่ตำแหน่งนี้", () => { if (atBeat != null) T.cursor = Math.max(0, atBeat); if (t) ui.trackId = t.id; pasteRegions(); }, "Ctrl+V"),
+    t && t.kind !== "audio" ? item("สร้าง region เปล่า ที่ตำแหน่งนี้", () => createRegionAt(t, (atBeat || 0) * ui.beatPx)) : null,
+    t && t.kind === "audio" ? item("นำเข้าไฟล์เสียงเข้าแทร็กนี้…", () => { ui.trackId = t.id; $("#fileAudio").click(); }) : null,
+    h("hr"), item("เลือกทั้งหมด", () => { ui.sel = new Set(P.tracks.flatMap((x) => x.regions.map((q) => q.id))); render(); }, "Ctrl+A")];
   const audio = t.kind === "audio";
-  menuEl = h("div", { class: "menu-pop", role: "menu", style: "min-width:240px" },
+  return [
     h("div", { class: "mlabel" }, r.name + (r.takes ? ` · Take Folder (${r.takes.length})` : "")),
     item(r.mute ? "เปิดเสียง (Unmute)" : "ปิดเสียง (Mute)", toggleMuteRegions, "Ctrl+M"),
     item("ตัดที่หัวเล่น (Split)", splitAtPlayhead, "Ctrl+T"),
     item("รวมเป็นอันเดียว (Join)", joinRegions, "Ctrl+J"),
     item("ทำซ้ำ (Duplicate)", duplicateRegions, "Ctrl+D"),
     audio ? h("hr") : null,
-    audio ? item("เปิดใน Audio Editor", () => openPane("audio"), "") : null,
+    audio ? item("เปิด Sample Editor (Warp)", () => openPane("audio"), "") : null,
     audio ? item("Fade In / Out สั้น (10 ms)", () => setFades(0.01, 0.01)) : null,
     audio ? item("Fade In 1 วินาที", () => setFades(1, null)) : null,
     audio ? item("Fade Out 2 วินาที", () => setFades(null, 2)) : null,
@@ -2549,10 +2660,387 @@ function regionMenu(e, t, r) {
     audio ? item("Flex Pitch (เปลี่ยนคีย์ / จูนเสียง)…", () => openFlex("pitch")) : null,
     audio && r.takes ? item("Flatten Take Folder", () => flattenTakes(r, t)) : null,
     h("hr"),
-    item("ลบ", deleteRegions, "Del"));
-  document.body.append(menuEl);
-  const mh = menuEl.offsetHeight;
-  menuEl.style.left = clamp(e.clientX, 8, window.innerWidth - 250) + "px"; menuEl.style.top = clamp(e.clientY, 8, window.innerHeight - mh - 8) + "px";
+    item("ลบ", deleteRegions, "Del")];
+}
+function toolMenu(e, t, r, atBeat) {
+  e.preventDefault(); e.stopPropagation(); closeMenu();
+  if (r && !ui.sel.has(r.id)) lightSelect(t.id, r.id);
+  menuEl = h("div", { class: "menu-pop tool-pop", role: "menu", style: "width:290px" });
+  const pos = { x: e.clientX, y: e.clientY };
+  const place = () => { const mh = menuEl.offsetHeight; menuEl.style.left = clamp(pos.x, 8, window.innerWidth - menuEl.offsetWidth - 8) + "px"; menuEl.style.top = clamp(pos.y, 8, window.innerHeight - mh - 8) + "px"; };
+  const build = () => {
+    const tab = (id, label) => h("button", { role: "tab", class: "ttab" + (ui.toolTab === id ? " on" : ""), "aria-selected": String(ui.toolTab === id), onclick: (ev) => { ev.stopPropagation(); ui.toolTab = id; build(); place(); } }, label);
+    const body = ui.toolTab === "tools"
+      ? h("div", { class: "tgrid" }, ...TOOLS.map((x) => h("button", { class: "toolbtn" + (ui.tool === x.id ? " on" : ""), role: "menuitemradio", "aria-checked": String(ui.tool === x.id), title: x.hint, onclick: () => { closeMenu(); setTool(x.id); } }, toolIcon(x), h("b", {}, x.name), h("small", {}, x.hint))))
+      : h("div", { class: "tcmds" }, ...commandItems(t, r, atBeat));
+    menuEl.replaceChildren(h("div", { class: "ttabs", role: "tablist" }, tab("tools", "เครื่องมือ"), tab("cmds", "คำสั่ง")), body);
+  };
+  build(); document.body.append(menuEl); place();
+}
+const regionMenu = (e, t, r) => toolMenu(e, t, r);
+
+/* ---------------------------------------------------------------- Warp (Ableton Live style) + Sample Editor
+   A region with Warp on keeps its original sound (r.warp.src) and a list of warp markers {s: seconds in the source, b: beat in the clip}.
+   The audio the region plays is re-rendered offline from the source whenever the markers, mode, BPM, pitch or the song tempo change. */
+const WARP_MODES = [["beats", "Beats"], ["tones", "Tones"], ["texture", "Texture"], ["repitch", "Re-Pitch"], ["complex", "Complex"], ["complexpro", "Complex Pro"]];
+const tempoSig = () => P.bpm + "|" + JSON.stringify(P.tempos || []);
+const WCACHE = new Map();   // detected transients / tempo per source sound
+function mulberry(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/* WAV header: sample rate / bit depth / channels of the original file (the decoder resamples, so read it from the header) */
+function wavMeta(ab) {
+  try {
+    const v = new DataView(ab); if (v.getUint32(0) !== 0x52494646 || v.getUint32(8) !== 0x57415645) return null;
+    for (let o = 12; o + 8 <= v.byteLength; ) {
+      const id = v.getUint32(o), size = v.getUint32(o + 4, true);
+      if (id === 0x666d7420) { const fmt = v.getUint16(o + 8, true); return { ch: v.getUint16(o + 10, true), sr: v.getUint32(o + 12, true), bits: v.getUint16(o + 22, true), float: fmt === 3 }; }
+      o += 8 + size + (size & 1);
+    }
+  } catch (e) {}
+  return null;
+}
+
+/* onset strength: how much the (high-passed) energy jumps from one 3 ms frame to the next */
+function onsetEnv(x, sr) {
+  const n = x[0].length, hop = Math.max(32, Math.round(sr * 0.003)), win = hop * 2, F = Math.floor((n - win) / hop);
+  if (F < 16) return null;
+  const e = new Float32Array(F);
+  for (let f = 0; f < F; f++) { let s = 0; const a = f * hop; for (const d of x) for (let i = a + 1; i < a + win; i++) { const v = d[i] - d[i - 1]; s += v * v; } e[f] = 10 * Math.log10(1e-9 + s / (win * x.length)); }
+  const o = new Float32Array(F);
+  for (let f = 4; f < F; f++) o[f] = e[f] - Math.max(e[f - 1], e[f - 2], e[f - 3], e[f - 4]);
+  return { e, o, hop, F };
+}
+function detectTransients(x, sr) {
+  const env = onsetEnv(x, sr); if (!env) return [];
+  const { e, o, hop, F } = env; let emax = -Infinity; for (let f = 0; f < F; f++) emax = Math.max(emax, e[f]);
+  const cand = [];
+  for (let f = 4; f < F - 1; f++) if (o[f] >= 7 && o[f] >= o[f - 1] && o[f] > o[f + 1] && e[f] > emax - 48) cand.push([f, o[f]]);
+  const minGap = Math.round((sr * 0.05) / hop), keep = [];
+  for (const c of cand) { const l = keep[keep.length - 1]; if (l && c[0] - l[0] < minGap) { if (c[1] > l[1]) keep[keep.length - 1] = c; } else keep.push(c); }
+  return keep.map(([f]) => Math.max(0, ((f + 1) * hop) / sr - 0.001)).filter((t) => t > 0.01);
+}
+function parseNameBpm(name) { const m = /(\d{2,3}(?:[.,]\d+)?)\s*bpm/i.exec(name || ""); return m ? +m[1].replace(",", ".") : 0; }
+function detectBpm(x, sr) {
+  const env = onsetEnv(x, sr), dur = x[0].length / sr; if (!env) return 0;
+  const { o, hop, F } = env, fs = sr / hop, od = new Float32Array(F); for (let f = 0; f < F; f++) od[f] = Math.max(0, o[f]) ** 1.2;
+  const lagMin = Math.round((fs * 60) / 200), lagMax = Math.min(F >> 1, Math.round((fs * 60) / 60)), sc = new Float32Array(lagMax + 2);
+  for (let L = lagMin; L <= lagMax; L++) { let s = 0; for (let i = 0; i + L < F; i++) s += od[i] * od[i + L]; sc[L] = s / Math.max(1, F - L); }
+  let best = 0, bs = -1;
+  for (let L = lagMin; L <= lagMax; L++) {
+    const bpm = (fs * 60) / L; let s = sc[L] + 0.5 * (sc[L * 2] || 0) + 0.25 * (sc[Math.round(L / 2)] || 0);
+    s *= Math.exp(-0.5 * ((Math.log2(bpm / 115)) / 0.6) ** 2);   // people mostly work between 80 and 160
+    if (s > bs) { bs = s; best = L; }
+  }
+  if (!best) return 0;
+  const a0 = sc[best - 1] || 0, a1 = sc[best], a2 = sc[best + 1] || 0, den = a0 + a2 - 2 * a1, lag = den ? best + (a0 - a2) / (2 * den) : best;
+  let est = (fs * 60) / lag; while (est < 75) est *= 2; while (est > 170) est /= 2;
+  // a loop is a whole number of beats long: snap to the tempo that makes it so
+  let pick = est, bestErr = 0.045;
+  for (let n = Math.max(1, Math.floor((dur * est * 0.9) / 60)); n <= Math.ceil((dur * est * 1.1) / 60); n++) { const b = (60 * n) / dur, err = Math.abs(b - est) / est - (n % 4 === 0 ? 0.01 : 0); if (err < bestErr) { bestErr = err; pick = b; } }
+  return Math.round(pick * 100) / 100;
+}
+function srcChannels(w) {
+  const B = buffers.get(w.src.audioId); if (!B) return null;
+  const sr = B.buf.sampleRate, a = Math.round(w.src.offset * sr), n = Math.max(1, Math.min(B.buf.length - a, Math.round(w.src.dur * sr))), x = [];
+  for (let c = 0; c < Math.min(2, B.buf.numberOfChannels); c++) x.push(B.buf.getChannelData(c).slice(a, a + n));
+  return { x, sr, B };
+}
+function warpTransients(w) {
+  const key = `${w.src.audioId}|${w.src.offset.toFixed(4)}|${w.src.dur.toFixed(4)}`;
+  if (WCACHE.has(key)) return WCACHE.get(key);
+  const c = srcChannels(w), tr = c ? detectTransients(c.x, c.sr) : []; WCACHE.set(key, tr); return tr;
+}
+
+/* marker maths: markers are sorted, both s and b increase */
+function warpBAtS(w, s) { const m = w.markers; let i = 0; while (i < m.length - 2 && s > m[i + 1].s) i++; const a = m[i], b = m[i + 1]; return b.s > a.s ? a.b + ((s - a.s) / (b.s - a.s)) * (b.b - a.b) : a.b; }
+function warpSAtB(w, bt) { const m = w.markers; let i = 0; while (i < m.length - 2 && bt > m[i + 1].b) i++; const a = m[i], b = m[i + 1]; return b.b > a.b ? a.s + ((bt - a.b) / (b.b - a.b)) * (b.s - a.s) : a.s; }
+
+/* ---- the DSP: render the warped sound ---- */
+function renderBeatsMode(x, sr, w, outOfS, total) {
+  const dur = x[0].length / sr, beatSec = 60 / (w.srcBpm || 120);
+  let pts;
+  if (w.preserve === "transients") pts = [0, ...warpTransients(w), dur];
+  else { const step = beatSec * ({ "1/4": 1, "1/8": 0.5, "1/16": 0.25 }[w.preserve] || 1); pts = []; for (let t = 0; t < dur - 1e-6; t += step) pts.push(t); pts.push(dur); }
+  for (const m of w.markers) pts.push(m.s);
+  pts = pts.filter((t) => t >= 0 && t <= dur).sort((a, b) => a - b).filter((t, i, a) => !i || t - a[i - 1] > 0.006);
+  if (pts[pts.length - 1] < dur - 1e-6) pts.push(dur);
+  const y = x.map(() => new Float32Array(total + 16)), E = clamp((w.env ?? 100) / 100, 0, 1), mode = w.loopMode || "pingpong";
+  for (let j = 0; j + 1 < pts.length; j++) {
+    const a0 = Math.round(pts[j] * sr), a1 = Math.round(pts[j + 1] * sr), o0 = Math.round(outOfS(pts[j]) * sr), o1 = Math.round(outOfS(pts[j + 1]) * sr), Ls = a1 - a0, Lo = o1 - o0;
+    if (Lo <= 0 || Ls <= 0) continue;
+    const fin = Math.min(Ls, Math.round(sr * 0.001)), copy = Math.min(Ls, Lo), fo = Math.max(2, Math.round(sr * 0.004));
+    for (let c = 0; c < x.length; c++) {
+      const src = x[c], dst = y[c];
+      for (let i = 0; i < copy; i++) { let g = i < fin ? i / fin : 1; if (Lo < Ls || mode === "off") { const left = copy - i; if (left < fo) g *= left / fo; } dst[o0 + i] += src[a0 + i] * g; }
+      if (Lo > Ls && mode !== "off") {   // the slice is shorter than its slot: keep its tail alive by looping it, then let it die away
+        const gap = Lo - Ls, Lw = Math.max(32, Math.min(Ls, Math.round(sr * 0.04))), p0 = a1 - Lw, cf = Math.min(Math.round(Lw / 4), Math.round(sr * 0.004)), Lc = Lw - cf;
+        const fadeLen = Math.max(fo, Math.round((1 - E) * gap));
+        for (let k = 0; k < gap; k++) {
+          let v;
+          if (mode === "forward") { const q = k % Lc; v = q < cf ? src[p0 + q] * (q / cf) + src[p0 + Lc + q] * (1 - q / cf) : src[p0 + q]; }
+          else { const q = k % (2 * Lw), idx = q < Lw ? q : 2 * Lw - 1 - q; v = src[p0 + idx]; }
+          const left = gap - k; dst[o0 + Ls + k] += v * (left < fadeLen ? left / fadeLen : 1);
+        }
+      }
+    }
+  }
+  return y.map((d) => d.subarray(0, total));
+}
+function renderRepitch(x, sr, segs, outLen, hiq) {
+  const y = x.map(() => new Float32Array(outLen)); let o = 0;
+  for (const g of segs) {
+    const N = Math.max(1, Math.round(g.out * sr)), a = g.s0 * sr, step = (g.s1 - g.s0) * sr / N;
+    for (let k = 0; k < N && o + k < outLen; k++) {
+      const p = a + k * step, i = Math.floor(p), f = p - i;
+      for (let c = 0; c < x.length; c++) {
+        const d = x[c], n = d.length; if (i < 0 || i + 1 >= n) continue;
+        if (hiq && i >= 1 && i + 2 < n) { const p0 = d[i - 1], p1 = d[i], p2 = d[i + 1], p3 = d[i + 2]; y[c][o + k] = p1 + 0.5 * f * (p2 - p0 + f * (2 * p0 - 5 * p1 + 4 * p2 - p3 + f * (3 * (p1 - p2) + p3 - p0))); }
+        else y[c][o + k] = d[i] + (d[i + 1] - d[i]) * f;
+      }
+    }
+    o += N;
+  }
+  return y;
+}
+async function renderWarp(r) {
+  const w = r.warp, c = srcChannels(w); if (!c) { toast("หาไฟล์ต้นฉบับของ Warp ไม่พบ"); return false; }
+  const { x, sr } = c, mk = w.markers, base = secAt(r.start), outSec = (b) => secAt(r.start + b) - base;
+  const total = Math.max(1, Math.round(outSec(mk[mk.length - 1].b) * sr));
+  toast("กำลังประมวลผล Warp…", 60000); await new Promise((res) => setTimeout(res, 30));
+  const segs = []; for (let i = 0; i + 1 < mk.length; i++) segs.push({ s0: mk[i].s, s1: mk[i + 1].s, out: outSec(mk[i + 1].b) - outSec(mk[i].b), ratio: (outSec(mk[i + 1].b) - outSec(mk[i].b)) / Math.max(1e-6, mk[i + 1].s - mk[i].s) });
+  const ratioAt = (i) => { const t = i / sr; for (const g of segs) if (t < g.s1) return g.ratio; return segs[segs.length - 1].ratio; };
+  const outOfS = (s) => outSec(warpBAtS(w, s));
+  let y;
+  if (w.mode === "repitch") y = renderRepitch(x, sr, segs, total, w.hiq);
+  else if (w.mode === "beats") y = renderBeatsMode(x, sr, w, outOfS, total);
+  else {
+    const pow2 = (sec) => 2 ** Math.round(Math.log2(Math.max(64, sr * sec)));
+    const opt = w.mode === "tones" ? { N: pow2((w.grain || 30) / 1000 * 1.5), overlap: w.hiq ? 4 : 2 }
+      : w.mode === "texture" ? { N: pow2((w.grain || 30) / 1000 * 1.5), overlap: 2, tol: 0, jitter: clamp((w.flux ?? 25) / 100, 0, 1) }
+      : w.mode === "complex" ? { N: pow2(0.09), overlap: w.hiq ? 4 : 2 } : { N: pow2(0.09), overlap: 4, tol: Math.round(sr * 0.012) };
+    const z = wsola(x, sr, ratioAt, opt).y;
+    y = x.map((_, ch) => { const out = new Float32Array(total), src = z[Math.min(ch, z.length - 1)], n = Math.min(total, src.length); out.set(src.subarray(0, n)); const f = Math.min(n, Math.round(sr * 0.003)); for (let i = 0; i < f; i++) out[n - 1 - i] *= i / f; return out; });
+  }
+  const tr = (w.semis || 0) + (w.cents || 0) / 100;
+  if (w.mode !== "repitch" && Math.abs(tr) > 1e-6) y = pitchShift(y, sr, () => tr);
+  r.audioId = newBuffer(y, sr, (r.name || "Audio") + " warp"); r.offset = 0; r.loops = 1;
+  r.len = mk[mk.length - 1].b; w.sig = tempoSig();
+  return true;
+}
+/* run `fn` (which changes r.warp), then re-render */
+async function commitWarp(r, fn, label) {
+  mark(); if (fn) fn(r.warp);
+  const ok = await renderWarp(r); render(); autosave();
+  if (ok && label) toast(label, 2200);
+  return ok;
+}
+async function warpEnable(r) {
+  if (r.takes) { toast("Flatten Take Folder ก่อนใช้ Warp"); return; }
+  mark();
+  if (r.warp && r.warp.src && !r.warp.on) { r.warp.on = true; }
+  else {
+    let src;
+    if (r.flex) { src = r.flex.src; delete r.flex; } else src = { audioId: r.audioId, offset: r.offset || 0, dur: secAt(r.start + r.len) - secAt(r.start) };
+    const B = buffers.get(src.audioId); if (!B) { toast("ไม่มีไฟล์เสียงของ region นี้"); return; }
+    const w0 = { src }, c = srcChannels({ src });
+    let bpm = parseNameBpm(B.name) || parseNameBpm(r.name) || (c ? detectBpm(c.x, c.sr) : 0) || bpmAt(r.start);
+    r.warp = { on: true, mode: "beats", preserve: "transients", loopMode: "pingpong", env: 100, grain: 30, flux: 25, hiq: false, semis: 0, cents: 0, srcBpm: bpm, src, markers: [{ s: 0, b: 0 }, { s: src.dur, b: (src.dur * bpm) / 60 }] };
+    warpTransients(r.warp);
+  }
+  const ok = await renderWarp(r); render(); autosave();
+  if (ok) toast(`Warp เปิดแล้ว · ${+r.warp.srcBpm.toFixed(2)} BPM → ตามเทมโปเพลง ${+bpmAt(r.start).toFixed(2)}`, 3200);
+}
+function warpDisable(r) {
+  mark(); const w = r.warp; w.on = false;
+  r.audioId = w.src.audioId; r.offset = w.src.offset; r.len = beatsFor(r.start, w.src.dur); r.loops = 1;
+  render(); autosave(); toast("ปิด Warp แล้ว (เสียงเล่นตามความเร็วเดิม)");
+}
+function warpSetBpm(r, bpm) {
+  bpm = clamp(+bpm || r.warp.srcBpm, 20, 400); const k = bpm / r.warp.srcBpm;
+  return commitWarp(r, (w) => { for (const m of w.markers) m.b *= k; w.srcBpm = bpm; }, `BPM ของเสียง = ${+bpm.toFixed(2)}`);
+}
+function warpReverse(r) {
+  const c = srcChannels(r.warp); if (!c) return;
+  c.x.forEach((d) => d.reverse());
+  return commitWarp(r, (w) => {
+    w.src = { audioId: newBuffer(c.x, c.sr, (r.name || "Audio") + " rev"), offset: 0, dur: w.src.dur };
+    const last = w.markers[w.markers.length - 1];
+    w.markers = w.markers.map((m) => ({ s: w.src.dur - m.s, b: last.b - m.b })).reverse();
+    [r.fadeIn, r.fadeOut] = [r.fadeOut || 0, r.fadeIn || 0];
+  }, "กลับหัวเสียง (Reverse) แล้ว");
+}
+let rewarpTimer = null;
+function rewarpAll() {   // the song tempo changed: warped sounds follow it
+  clearTimeout(rewarpTimer);
+  rewarpTimer = setTimeout(async () => {
+    const sig = tempoSig(), list = P.tracks.flatMap((t) => (t.kind === "audio" ? t.regions.filter((r) => r.warp?.on && r.warp.sig !== sig) : []));
+    if (!list.length) return;
+    for (const r of list) await renderWarp(r);
+    render(); autosave(); toast("ปรับเสียง Warp ตามเทมโปใหม่แล้ว", 2200);
+  }, 500);
+}
+
+/* ---- Sample Editor UI ---- */
+const SE = { RH: 18, ML: 26, WH: 150 };
+function seFileInfo(r) {
+  const w = r.warp, id = w && w.src ? w.src.audioId : r.audioId, B = buffers.get(id) || buffers.get(r.audioId); if (!B) return "";
+  const m = B.meta, sr = m ? m.sr : B.buf.sampleRate, bits = m ? (m.float ? m.bits + "-Bit float" : m.bits + "-Bit") : null, ch = B.buf.numberOfChannels;
+  return `${+(sr / 1000).toFixed(1)} kHz${bits ? " · " + bits : ""} · ${ch} Ch`;
+}
+function renderSampleEd(box, f) {
+  const { t, r } = f, w = r.warp && r.warp.on ? r.warp : null, B = buffers.get(r.audioId);
+  const total = Math.max(1, r.len), availW = Math.max(300, box.clientWidth - 372);
+  if (AE.fitId !== r.id) { AE.fitId = r.id; AE.userZoom = false; }
+  if (!AE.userZoom) AE.px = clamp(availW / total, 6, 500);
+  const px = AE.px, W = Math.max(Math.round(total * px), 300), CH = SE.RH + SE.ML + SE.WH;
+  const cv = h("canvas", { width: W, height: CH, style: `width:${W}px;height:${CH}px;display:block;touch-action:none;cursor:text` });
+  const info = seFileInfo(r), dB = 20 * Math.log10(Math.max(1e-4, r.gain ?? 1));
+  const field = (label, ...kids) => h("label", { class: "se-f" }, h("span", {}, label), ...kids);
+  const sel = (opts, cur, fn, extra) => { const s = h("select", { class: "field se-sel", ...(extra || {}) }, ...opts.map(([v, l]) => h("option", { value: v, selected: String(v) === String(cur) }, l))); s.addEventListener("change", () => fn(s.value)); return s; };
+  const num = (v, min, max, step, fn, cls) => { const i = h("input", { class: "field se-num " + (cls || ""), type: "number", min, max, step, value: v }); i.addEventListener("change", () => fn(+i.value)); return i; };
+  const tog = (label, on, fn, title) => h("button", { class: "btn small se-tog" + (on ? " on" : ""), "aria-pressed": String(!!on), title: title || label, onclick: fn }, label);
+  const colA = h("div", { class: "se-col" }), colB = h("div", { class: "se-col" }), left = h("div", { class: "se-left" }, colA, colB);
+  colA.append(h("button", { class: "se-warp" + (w ? " on" : ""), "aria-pressed": String(!!w), title: "Warp: ยืด/หดเสียงให้ตรงเทมโปของเพลง", onclick: () => (w ? warpDisable(r) : warpEnable(r)) }, "Warp"));
+  if (w) {
+    colA.append(sel(WARP_MODES, w.mode, (v) => commitWarp(r, (x) => (x.mode = v), "Warp mode: " + WARP_MODES.find((m) => m[0] === v)[1])));
+    if (w.mode === "beats") {
+      colA.append(field("Preserve", sel([["transients", "Transients"], ["1/4", "1/4"], ["1/8", "1/8"], ["1/16", "1/16"]], w.preserve, (v) => commitWarp(r, (x) => (x.preserve = v)))),
+        h("div", { class: "se-row" }, sel([["off", "Loop: Off"], ["forward", "Loop: ▶"], ["pingpong", "Loop: ⇄"]], w.loopMode, (v) => commitWarp(r, (x) => (x.loopMode = v)), { title: "เมื่อชิ้นเสียงสั้นกว่าช่องของมัน: ปิด / วนไปข้างหน้า / วนไป-กลับ" }),
+          num(w.env ?? 100, 0, 100, 1, (v) => commitWarp(r, (x) => (x.env = clamp(v, 0, 100))), "se-env")));
+    } else if (w.mode === "tones" || w.mode === "texture") {
+      colA.append(field("Grain (ms)", num(w.grain || 30, 10, 100, 1, (v) => commitWarp(r, (x) => (x.grain = clamp(v, 10, 100))))));
+      if (w.mode === "texture") colA.append(field("Flux %", num(w.flux ?? 25, 0, 100, 1, (v) => commitWarp(r, (x) => (x.flux = clamp(v, 0, 100))))));
+    }
+    colA.append(h("div", { class: "se-bpm" }, h("span", {}, "BPM"),
+      h("div", { class: "se-row" }, num(+w.srcBpm.toFixed(2), 20, 400, 0.01, (v) => warpSetBpm(r, v), "se-bpmnum"),
+        h("button", { class: "btn small", title: "ครึ่งหนึ่ง", onclick: () => warpSetBpm(r, w.srcBpm / 2) }, "/2"), h("button", { class: "btn small", title: "สองเท่า", onclick: () => warpSetBpm(r, w.srcBpm * 2) }, "×2")),
+      h("small", {}, `เพลง ${+bpmAt(r.start).toFixed(2)} BPM`)));
+  } else colA.append(h("p", { class: "se-hint" }, "เปิด Warp เพื่อให้เสียงตามเทมโปของเพลง และจับจังหวะด้วย Warp Marker"));
+  colB.append(h("div", { class: "se-row" }, h("button", { class: "btn small", onclick: () => (w ? warpReverse(r) : (ui.sel = new Set([r.id]), reverseRegions())) }, "Reverse"), h("button", { class: "btn small", onclick: () => { ui.sel = new Set([r.id]); normalizeRegions(); } }, "Normalize")),
+    h("div", { class: "se-row" }, tog("Fade", (r.fadeIn || 0) > 0.0005 && (r.fadeOut || 0) > 0.0005, () => { mark(); const on = (r.fadeIn || 0) > 0.0005 && (r.fadeOut || 0) > 0.0005; r.fadeIn = r.fadeOut = on ? 0 : 0.01; render(); autosave(); }, "Fade สั้น 10 ms ที่หัว-ท้าย (กันเสียงคลิก)"),
+      w ? tog("HiQ", w.hiq, () => commitWarp(r, (x) => (x.hiq = !x.hiq)), "คุณภาพสูงขึ้น (ช้าลงเล็กน้อย)") : null));
+  const gdb = h("span", { class: "se-db" }, dB.toFixed(1) + " dB");
+  const gain = h("input", { class: "se-gain", type: "range", min: -70, max: 24, step: 0.1, value: dB, "aria-label": "Gain", orient: "vertical" });
+  let gmarked = false;
+  gain.addEventListener("input", () => { if (!gmarked) { mark(); gmarked = true; } const v = +gain.value; r.gain = 10 ** (v / 20); gdb.textContent = v.toFixed(1) + " dB"; });
+  gain.addEventListener("change", () => { gmarked = false; render(); autosave(); }); gain.addEventListener("dblclick", () => { mark(); r.gain = 1; render(); autosave(); });
+  const pst = h("span", { class: "se-db" }, ((w?.semis || 0) >= 0 ? "+" : "") + (w?.semis || 0) + " st");
+  const pitch = h("input", { class: "se-pitch", type: "range", min: -48, max: 48, step: 1, value: w?.semis || 0, "aria-label": "Pitch (semitones)" });
+  if (!w) pitch.disabled = true; else { pitch.addEventListener("input", () => (pst.textContent = (+pitch.value >= 0 ? "+" : "") + pitch.value + " st")); pitch.addEventListener("change", () => commitWarp(r, (x) => (x.semis = +pitch.value), "Pitch " + pitch.value + " st")); pitch.addEventListener("dblclick", () => commitWarp(r, (x) => { x.semis = 0; x.cents = 0; })); }
+  colB.append(h("div", { class: "se-gp" }, h("div", { class: "se-g" }, h("span", {}, "Gain"), gain, gdb), h("div", { class: "se-p" }, h("span", {}, "Pitch"), pitch, pst,
+    h("div", { class: "se-row" }, w ? num(w.cents || 0, -50, 50, 1, (v) => commitWarp(r, (x) => (x.cents = clamp(v, -50, 50))), "se-cents") : null, h("small", {}, "cents")))));
+  const head = h("div", { class: "se-head" }, h("b", {}, (buffers.get(w ? w.src.audioId : r.audioId)?.name || r.name)), h("span", {}, info),
+    h("span", { class: "se-sp" }), h("span", {}, `${t.name} · ${fmtTime(secAt(r.start + r.len) - secAt(r.start))} วินาที${w ? " · Warp " + WARP_MODES.find((m) => m[0] === w.mode)[1] : ""}`),
+    r.flex ? h("span", {}, `Flex: ${flexLabel(r.flex)}`) : null);
+  const scroll = h("div", { class: "se-scroll" }, cv);
+  scroll.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); AE.userZoom = true; AE.px = clamp(AE.px * (e.deltaY < 0 ? 1.15 : 1 / 1.15), 6, 2000); renderAudioEd(); }, { passive: false });
+  box.replaceChildren(h("div", { class: "se" }, left, h("div", { class: "se-main" }, head, scroll)));
+
+  const g = cv.getContext("2d"), yW = SE.RH + SE.ML;
+  const xOf = (bt) => bt * px, trs = w ? warpTransients(w) : [];
+  const draw = () => {
+    g.clearRect(0, 0, W, CH); g.fillStyle = "#17181b"; g.fillRect(0, 0, W, CH);
+    g.fillStyle = "#26272b"; g.fillRect(0, 0, W, SE.RH); g.fillRect(0, SE.RH, W, SE.ML); g.fillStyle = "#1f2023"; g.fillRect(0, yW, W, SE.WH);
+    g.font = "10px monospace";
+    for (let bt = Math.ceil(r.start - 1e-9); bt <= r.start + r.len + 1e-9; bt++) {
+      const x = (bt - r.start) * px, bar = isBarStart(bt), a = barAt(bt);
+      g.fillStyle = bar ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.07)"; g.fillRect(x, SE.RH, 1, CH - SE.RH);
+      g.fillStyle = "#9aa0a8"; g.fillRect(x, bar ? 4 : 11, 1, bar ? 14 : 7);
+      if (bar) g.fillText(String(a.bar + 1), x + 3, 11); else if (px >= 36) g.fillText(`${a.bar + 1}.${Math.round(bt - a.start) + 1}`, x + 3, 11);
+      if (px >= 120) for (let q = 1; q < 4; q++) { g.fillStyle = "rgba(255,255,255,.04)"; g.fillRect(x + (q * px) / 4, yW, 1, SE.WH); }
+    }
+    // waveform
+    g.fillStyle = rgba(t.color, 0.2); g.fillRect(0, yW, W, SE.WH);
+    const half = SE.WH / 2, mid = yW + half, gain = Math.min(4, r.gain ?? 1);
+    g.fillStyle = "rgba(255,255,255,.88)";
+    if (w) {   // draw the original sound through the warp markers, so dragging a marker shows the result immediately
+      const Bs = buffers.get(w.src.audioId);
+      if (Bs) { const pk = peaksOf(Bs), pps = pk.length / Bs.buf.duration;
+        for (let x = 0; x < W; x++) {
+          const s0 = w.src.offset + warpSAtB(w, x / px), s1 = w.src.offset + warpSAtB(w, (x + 1) / px); let i0 = Math.floor(s0 * pps), i1 = Math.max(i0 + 1, Math.ceil(s1 * pps)), m = 0;
+          if (i1 < 0 || i0 >= pk.length) continue; for (let i = Math.max(0, i0); i < Math.min(pk.length, i1); i++) if (pk[i] > m) m = pk[i];
+          const a = Math.min(1, m * gain) * (half - 2); g.fillRect(x, mid - a, 1, Math.max(1, a * 2));
+        } }
+    } else if (B) {
+      for (const c of expandRegion({ ...r, mute: false })) {
+        const Bc = buffers.get(c.audioId); if (!Bc) continue;
+        const pk = peaksOf(Bc), pps = pk.length / Bc.buf.duration, xa = (c.start - r.start) * px, xb = (c.start + c.len - r.start) * px, cs = secAt(c.start);
+        for (let x = Math.max(0, Math.floor(xa)); x < xb && x < W; x++) { const sec = c.offset + secAt(r.start + x / px) - cs, i = Math.floor(sec * pps); if (i < 0 || i >= pk.length) continue; const a = Math.min(1, pk[i] * gain) * (half - 2); g.fillRect(x, mid - a, 1, Math.max(1, a * 2)); }
+      }
+    }
+    g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(0, mid, W, 1);
+    // fades
+    const fiW = (beatsFor(r.start, r.fadeIn || 0)) * px, foW = (r.start + r.len - beatAtSec(secAt(r.start + r.len) - (r.fadeOut || 0))) * px;
+    g.fillStyle = "rgba(0,0,0,.45)"; g.strokeStyle = "rgba(255,255,255,.9)";
+    if (fiW > 1) { g.beginPath(); g.moveTo(0, yW); g.lineTo(fiW, yW); g.lineTo(0, yW + SE.WH); g.closePath(); g.fill(); g.beginPath(); g.moveTo(0, yW + SE.WH); g.lineTo(fiW, yW); g.stroke(); }
+    if (foW > 1) { g.beginPath(); g.moveTo(W, yW); g.lineTo(W - foW, yW); g.lineTo(W, yW + SE.WH); g.closePath(); g.fill(); g.beginPath(); g.moveTo(W - foW, yW); g.lineTo(W, yW + SE.WH); g.stroke(); }
+    // warp markers
+    if (w) {
+      g.fillStyle = "rgba(255,255,255,.5)";
+      for (const ts of trs) { const x = xOf(warpBAtS(w, ts)); if (x < 0 || x > W) continue; g.beginPath(); g.moveTo(x - 4, SE.RH + 4); g.lineTo(x + 4, SE.RH + 4); g.lineTo(x, SE.RH + 14); g.closePath(); g.fill(); g.fillRect(x, SE.RH + 14, 1, 4); }
+      w.markers.forEach((m, i) => {
+        const x = xOf(m.b), hot = SE.drag && SE.drag.i === i;
+        g.fillStyle = hot ? "#fff" : "#ffd23f"; g.fillRect(x - 0.5, SE.RH, 1.5, CH - SE.RH);
+        g.beginPath(); g.moveTo(x - 6, SE.RH + 1); g.lineTo(x + 6, SE.RH + 1); g.lineTo(x, SE.RH + 12); g.closePath(); g.fill();
+      });
+    } else { g.fillStyle = "#6f747d"; g.fillText("Warp ปิดอยู่ — เสียงเล่นตามความเร็วเดิม", 8, SE.RH + 17); }
+    if (AE.sel && AE.sel.id === r.id) { const a = Math.min(AE.sel.a, AE.sel.b), b = Math.max(AE.sel.a, AE.sel.b); g.fillStyle = "rgba(90,167,255,.28)"; g.fillRect(a * px, yW, (b - a) * px, SE.WH); }
+    const ph = (currentBeatSafe() - r.start) * px; if (ph >= 0 && ph <= W) { g.fillStyle = "#fff"; g.fillRect(ph, 0, 1, CH); }
+  };
+  draw(); AE.redraw = draw;
+
+  const markerAt = (x) => { if (!w) return -1; let bi = -1, bd = 7; w.markers.forEach((m, i) => { const d = Math.abs(xOf(m.b) - x); if (d < bd) { bd = d; bi = i; } }); return bi; };
+  const transientAt = (x) => { if (!w) return -1; let bi = -1, bd = 7; trs.forEach((ts, i) => { const d = Math.abs(xOf(warpBAtS(w, ts)) - x); if (d < bd) { bd = d; bi = i; } }); return bi; };
+  const inLane = (y) => y >= SE.RH && y < yW;
+  const grid = (b, ev) => (ev.altKey ? b : Math.round(b * 4) / 4);
+  const dragMarker = (i, e) => {
+    const m = w.markers[i], snap = JSON.stringify(P); let moved = false; cv.setPointerCapture(e.pointerId); SE.drag = { i };
+    const lo = () => (i > 0 ? w.markers[i - 1].b + 0.0625 : 0), hi = () => (i < w.markers.length - 1 ? w.markers[i + 1].b - 0.0625 : Infinity);
+    const mv = (ev) => { const bt = clamp(grid(ev.offsetX / px, ev), lo(), hi()); if (i === 0) return; if (Math.abs(bt - m.b) > 1e-9) { moved = true; m.b = bt; draw(); } };
+    const up = async () => {
+      cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up); SE.drag = null;
+      if (moved) { H.undo.push(snap); if (H.undo.length > 120) H.undo.shift(); H.redo.length = 0; updateUndoBtns(); await renderWarp(r); render(); autosave(); } else draw();
+    };
+    cv.addEventListener("pointermove", mv); cv.addEventListener("pointerup", up); draw();
+  };
+  cv.addEventListener("pointerdown", (e) => {
+    if (w && inLane(e.offsetY)) {
+      const mi = markerAt(e.offsetX);
+      if (mi >= 0) { dragMarker(mi, e); return; }
+      const ti = transientAt(e.offsetX);
+      if (ti >= 0) {   // dragging a grey transient marker makes it a real warp marker
+        const s = trs[ti], b0 = warpBAtS(w, s), x0 = e.clientX; cv.setPointerCapture(e.pointerId);
+        const mv = (ev) => { if (Math.abs(ev.clientX - x0) < 4) return; cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up0);
+          const snap = JSON.stringify(P); H.undo.push(snap); if (H.undo.length > 120) H.undo.shift(); H.redo.length = 0;
+          const nm = { s, b: b0 }; w.markers.push(nm); w.markers.sort((p, q) => p.s - q.s); cv.releasePointerCapture?.(e.pointerId); dragMarkerNoUndo(w.markers.indexOf(nm), ev); };
+        const up0 = () => { cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up0); };
+        const dragMarkerNoUndo = (i, ev) => { const m = w.markers[i]; let moved = false; cv.setPointerCapture(ev.pointerId); SE.drag = { i };
+          const lo = w.markers[i - 1].b + 0.0625, hi = i < w.markers.length - 1 ? w.markers[i + 1].b - 0.0625 : Infinity;
+          const mv2 = (e2) => { const bt = clamp(grid(e2.offsetX / px, e2), lo, hi); if (Math.abs(bt - m.b) > 1e-9) { moved = true; m.b = bt; draw(); } };
+          const up2 = async () => { cv.removeEventListener("pointermove", mv2); cv.removeEventListener("pointerup", up2); SE.drag = null; await renderWarp(r); render(); autosave(); };
+          cv.addEventListener("pointermove", mv2); cv.addEventListener("pointerup", up2); mv2(ev); };
+        cv.addEventListener("pointermove", mv); cv.addEventListener("pointerup", up0); return;
+      }
+    }
+    cv.setPointerCapture(e.pointerId);
+    const rel = (ev) => clamp(ev.offsetX / px, 0, r.len), a0 = rel(e);
+    AE.sel = { id: r.id, a: a0, b: a0 };
+    const mv = (ev) => { AE.sel.b = rel(ev); draw(); };
+    const up = () => { cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up); if (Math.abs(AE.sel.b - AE.sel.a) < 0.02) { AE.sel = null; seek(r.start + a0); } draw(); };
+    cv.addEventListener("pointermove", mv); cv.addEventListener("pointerup", up);
+  });
+  cv.addEventListener("dblclick", (e) => {
+    if (!w || !inLane(e.offsetY)) return;
+    const mi = markerAt(e.offsetX);
+    if (mi >= 0) {   // double-click a warp marker: remove it (the first and last stay)
+      if (mi === 0 || mi === w.markers.length - 1) { toast("Marker แรกและสุดท้ายลบไม่ได้"); return; }
+      commitWarp(r, (x) => x.markers.splice(mi, 1), "ลบ Warp Marker"); return;
+    }
+    const ti = transientAt(e.offsetX), bt = e.offsetX / px;
+    let s = ti >= 0 ? trs[ti] : warpSAtB(w, bt), b0 = warpBAtS(w, s);
+    if (w.markers.some((m) => Math.abs(m.s - s) < 0.003)) return;
+    commitWarp(r, (x) => { x.markers.push({ s, b: b0 }); x.markers.sort((p, q) => p.s - q.s); }, "เพิ่ม Warp Marker — ลากเพื่อจัดจังหวะ");
+  });
 }
 
 /* ---------------------------------------------------------------- Audio Editor (bottom pane) */
@@ -2561,7 +3049,11 @@ function aeRegion() { const f = ui.regionId && findRegion(ui.regionId); return f
 function renderAudioEd() {
   const box = $("#ae"); if (!box || ui.tab !== "audio") return;
   const f = aeRegion();
-  if (!f) { box.replaceChildren(h("p", { class: "empty-hint" }, "เลือก region เสียง (ดับเบิลคลิก region ในแทร็ก Audio) เพื่อแก้ไขที่นี่")); return; }
+  if (!f) { box.replaceChildren(h("p", { class: "empty-hint" }, "เลือก region เสียง (ดับเบิลคลิก region ในแทร็ก Audio) เพื่อเปิด Sample Editor")); return; }
+  if (!f.r.takes) return renderSampleEd(box, f);
+  renderTakeEd(box, f);
+}
+function renderTakeEd(box, f) {
   const { t, r } = f, W = Math.max(200, Math.round(r.len * AE.px)), takes = r.takes || null;
   const rows = takes ? 1 + takes.length : 1, H = AE.laneH + (takes ? takes.length * AE.takeH : 0) + 18;
   const cv = h("canvas", { width: W, height: H, style: `width:${W}px;height:${H}px;display:block;touch-action:none;cursor:text` });
@@ -2632,7 +3124,7 @@ function compSet(comp, a, b, ti) {
   const merged = []; for (const s of out) { const l = merged[merged.length - 1]; if (l && l.take === s.take && Math.abs(l.b - s.a) < 1e-9) l.b = s.b; else merged.push(s); }
   return merged;
 }
-function aeSelection() { const f = aeRegion(); if (!f || !AE.sel || AE.sel.id !== f.r.id) { toast("ลากเลือกช่วงใน Audio Editor ก่อน"); return null; } const a = Math.min(AE.sel.a, AE.sel.b), b = Math.max(AE.sel.a, AE.sel.b); return b - a > 0.01 ? { ...f, a, b } : null; }
+function aeSelection() { const f = aeRegion(); if (!f || !AE.sel || AE.sel.id !== f.r.id) { toast("ลากเลือกช่วงใน Sample Editor ก่อน"); return null; } const a = Math.min(AE.sel.a, AE.sel.b), b = Math.max(AE.sel.a, AE.sel.b); return b - a > 0.01 ? { ...f, a, b } : null; }
 function aeCut(keep) {
   const s = aeSelection(); if (!s) return;
   mark();
@@ -2721,8 +3213,8 @@ function togglePunch(force) {
 /* ---------------------------------------------------------------- Flex Time / Flex Pitch (offline DSP) */
 /* WSOLA time-stretch with a ratio that may change over time.
    ratioAt(inputSample) = local output/input length. Returns { y: channels, frames: [[outPos, inPos], ...] } */
-function wsola(x, sr, ratioAt) {
-  const N = 2 ** Math.round(Math.log2(sr * 0.046)), Hs = N / 2, tol = Math.round(sr * 0.008), len = x[0].length;
+function wsola(x, sr, ratioAt, opt = {}) {
+  const N = opt.N || 2 ** Math.round(Math.log2(sr * 0.046)), Hs = Math.max(1, Math.round(N / (opt.overlap || 2))), tol = opt.tol ?? Math.round(sr * 0.008), len = x[0].length, rnd = opt.jitter ? mulberry(7) : null;
   const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N);
   const mono = new Float32Array(len); for (const c of x) for (let i = 0; i < len; i++) mono[i] += c[i] / x.length;
   let est = 0; for (let a = 0; a < len; ) { est += Hs; a += Hs / Math.max(0.05, ratioAt(a)); }
@@ -2730,7 +3222,8 @@ function wsola(x, sr, ratioAt) {
   let a = 0, prev = -1, k = 0;
   while (a < len && k * Hs < outLen - N) {
     let best = Math.round(a);
-    if (prev >= 0) {   // find the shift that best continues the previous frame
+    if (rnd) best += Math.round((rnd() - 0.5) * opt.jitter * N);
+    if (prev >= 0 && tol > 0) {   // find the shift that best continues the previous frame
       const nat = prev + Hs; let bestC = -Infinity;
       for (let d = -tol; d <= tol; d += 2) {
         const p = Math.round(a) + d; if (p < 0 || p + N > len) continue;
@@ -2818,6 +3311,10 @@ function flexSource(r) {
   return r.flex;
 }
 async function flexStretchTo(r) {
+  if (r.warp?.on) {   // a warped region: scale its markers to the new length
+    const k = r.len / r.warp.markers[r.warp.markers.length - 1].b;
+    await commitWarp(r, (w) => { for (const m of w.markers) m.b *= k; }, "Time Stretch (Warp)"); return;
+  }
   if (r.takes) { toast("Flatten Take Folder ก่อนใช้ Flex"); return; }
   const f = flexSource(r), want = secAt(r.start + r.len) - secAt(r.start);
   f.ratio = clamp(want / f.src.dur, 0.25, 4);
@@ -2826,6 +3323,7 @@ async function flexStretchTo(r) {
 let flexTarget = null;
 function openFlex(mode) {
   const f0 = aeRegion() || audioSel()[0]; if (!f0) { toast("เลือก region เสียงก่อน"); return; }
+  if (f0.r.warp?.on) { toast("Region นี้ใช้ Warp อยู่ — ปรับ Pitch / จังหวะที่แผง Sample Editor (ปิด Warp ก่อนถ้าจะใช้ Flex Pitch จูนเสียงร้อง)", 5000); return; }
   if (f0.r.takes) { toast("Flatten Take Folder ก่อนใช้ Flex"); return; }
   flexTarget = f0; const f = f0.r.flex || { ratio: 1, semis: 0, cents: 0, correct: 0, speed: 40, src: { bpm: bpmAt(f0.r.start) } };
   $("#fxTimeBox").hidden = mode !== "time"; $("#fxPitchBox").hidden = mode !== "pitch";
@@ -3093,7 +3591,7 @@ async function persistAudio(id) {
 /* load every audio file the project refers to that is not in memory yet */
 async function loadMissingMedia() {
   if (!FS) return;
-  const want = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.audioId).filter(Boolean)));
+  const want = new Set(P.tracks.flatMap((t) => t.regions.flatMap((r) => [r.audioId, r.warp?.src?.audioId, r.flex?.src?.audioId]).filter(Boolean)));
   let n = 0, missing = 0;
   for (const id of want) {
     if (buffers.has(id)) continue;
@@ -3101,7 +3599,7 @@ async function loadMissingMedia() {
     try { ensureCtx(); const u8 = await FS.readAudio(path); buffers.set(id, { buf: await ctx.decodeAudioData(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength)), name: id, path }); n++; }
     catch (e) { missing++; }
   }
-  if (n) { render(); engPush(); }
+  if (n) { render(); engPush(); rewarpAll(); }
   if (missing) toast(`หาไฟล์เสียงไม่พบ ${missing} ไฟล์`, 5000);
 }
 
@@ -3152,9 +3650,9 @@ async function importAudio(files) {
   ensureCtx(); let t = trackById(ui.trackId), did = false;
   for (const file of files) {
     try {
-      const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+      const ab = await file.arrayBuffer(), meta = wavMeta(ab), buf = await ctx.decodeAudioData(ab);
       if (!did) { mark(); did = true; }
-      const id = uid(); buffers.set(id, { buf, name: file.name }); persistAudio(id);
+      const id = uid(); buffers.set(id, { buf, name: file.name, meta }); persistAudio(id);
       if (!t || t.kind !== "audio" || t.regions.length) { t = newTrack("audio", file.name.replace(/\.[^.]+$/, "").slice(0, 28), { color: "#e0479f" }); P.tracks.push(t); addTrackChannel(M, t); }
       t.regions.push({ id: uid(), name: file.name.replace(/\.[^.]+$/, ""), start: barFloor(T.cursor), len: beatsFor(barFloor(T.cursor), buf.duration), loops: 1, audioId: id, offset: 0 });
       ui.trackId = t.id; ui.regionId = t.regions[t.regions.length - 1].id; ui.sel = new Set([ui.regionId]);
@@ -3281,10 +3779,11 @@ function boot() {
     mark(); const was = T.playing; if (was) stop();
     const v = clamp(+e.target.value || 96, 20, 300), at = tempoChanges().filter((t) => t.b <= T.cursor + 1e-9).pop();
     if (at) at.bpm = v; else P.bpm = v;
-    e.target.value = v; rebuildMix(); render(); autosave(); if (was) play();
+    e.target.value = v; rebuildMix(); render(); autosave(); rewarpAll(); if (was) play();
   };
   $("#projName").onfocus = mark; $("#projName").oninput = (e) => { P.name = e.target.value; autosave(); };
   $("#addSynth").onclick = () => addTrack("synth"); $("#addDrums").onclick = () => addTrack("drums"); $("#addAudio").onclick = () => addTrack("audio");
+  $("#bTool").onclick = (e) => { const b = e.currentTarget.getBoundingClientRect(); toolMenu({ clientX: b.left, clientY: b.bottom + 4, preventDefault() {}, stopPropagation() {} }, null, null); }; setTool("pointer", true);
   $("#bSplit").onclick = splitAtPlayhead; $("#bCopy").onclick = () => copyRegions(false); $("#bPaste").onclick = pasteRegions; $("#bQuant").onclick = quantizeSelected; $("#prQuant").onclick = quantizeSelected;
   $("#zIn").onclick = () => { ui.beatPx = clamp(ui.beatPx * 1.3, 8, 96); render(); };
   $("#zOut").onclick = () => { ui.beatPx = clamp(ui.beatPx / 1.3, 8, 96); render(); };
@@ -3294,8 +3793,8 @@ function boot() {
   $("#aeDel").onclick = () => aeCut(false); $("#aeCrop").onclick = () => aeCut(true); $("#aeFin").onclick = () => aeFade("in"); $("#aeFout").onclick = () => aeFade("out");
   $("#aeNorm").onclick = () => { const f = aeRegion(); if (f) { ui.sel = new Set([f.r.id]); normalizeRegions(); } };
   $("#aeRev").onclick = () => { const f = aeRegion(); if (f) { ui.sel = new Set([f.r.id]); reverseRegions(); } };
-  $("#aeStrip").onclick = openStripSilence; $("#aeFlexT").onclick = () => openFlex("time"); $("#aeFlexP").onclick = () => openFlex("pitch");
-  $("#aeZoomIn").onclick = () => { AE.px = clamp(AE.px * 1.4, 10, 2000); renderAudioEd(); }; $("#aeZoomOut").onclick = () => { AE.px = clamp(AE.px / 1.4, 10, 2000); renderAudioEd(); };
+  $("#aeStrip").onclick = openStripSilence; $("#aeFlexP").onclick = () => openFlex("pitch");
+  $("#aeZoomIn").onclick = () => { AE.userZoom = true; AE.px = clamp(AE.px * 1.4, 6, 2000); renderAudioEd(); }; $("#aeZoomOut").onclick = () => { AE.userZoom = true; AE.px = clamp(AE.px / 1.4, 6, 2000); renderAudioEd(); };
   for (const id of ["ssThr", "ssMin", "ssPre", "ssPost"]) $("#" + id).oninput = stripPreview;
   for (const id of ["flRatio", "flSemis", "flCents", "flCorrect", "flSpeed"]) $("#" + id).oninput = flexOut;
   $("#flFollow").onclick = () => { const r0 = flexTarget?.r; if (!r0) return; $("#flRatio").value = Math.round(((+$("#flSrcBpm").value || P.bpm) / bpmAt(r0.start)) * 100); if (r0.flex) r0.flex.src.bpm = +$("#flSrcBpm").value; flexOut(); };
