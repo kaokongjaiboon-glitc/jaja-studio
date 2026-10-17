@@ -16,9 +16,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and run the engine test
         run: |
-          cmake -S engine/tests -B build-test -DCMAKE_BUILD_TYPE=Release
-          cmake --build build-test --parallel
-          ./build-test/EngineTest_artefacts/Release/EngineTest
+          set -o pipefail
+          { cmake -S engine/tests -B build-test -DCMAKE_BUILD_TYPE=Release \
+            && cmake --build build-test --parallel \
+            && ./build-test/EngineTest_artefacts/Release/EngineTest ; } 2>&1 | tee build.log
+      - name: Report errors
+        if: failure()
+        run: |
+          M=$(grep -iE "error|fatal|FAIL|Assertion|what\(\)" build.log | head -30 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Linux build log::$M"
+          T=$(tail -15 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Linux log tail::$T"
 
   windows:
     name: Windows app (Electron + JAJA Engine)
@@ -33,9 +41,22 @@ jobs:
           key: juce-9.0.4-${{ runner.os }}-v1
 
       - name: Build JAJAEngine.exe (ASIO + VST3)
+        shell: pwsh
         run: |
-          cmake -S engine -B engine/build -G "Visual Studio 17 2022" -A x64
-          cmake --build engine/build --config Release --parallel
+          $ErrorActionPreference = "Continue"
+          cmake -S engine -B engine/build -G "Visual Studio 17 2022" -A x64 *>&1 | Tee-Object -FilePath build.log
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          cmake --build engine/build --config Release --parallel *>&1 | Tee-Object -FilePath build.log -Append
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Report errors
+        if: failure()
+        shell: pwsh
+        run: |
+          $all = Get-Content build.log
+          $e = ($all | Select-String -Pattern "error|fatal|CMake Error" | Select-Object -First 30 | ForEach-Object { $_.Line }) -join "%0A"
+          Write-Host "::error title=Windows build errors::$($e.Replace('%','%25').Replace('%250A','%0A'))"
+          $t = ($all | Select-Object -Last 15) -join "%0A"
+          Write-Host "::error title=Windows log tail::$($t.Replace('%','%25').Replace('%250A','%0A'))"
 
       - name: Download Electron and check its checksum
         shell: pwsh
