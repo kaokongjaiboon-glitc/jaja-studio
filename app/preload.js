@@ -27,5 +27,7 @@ contextBridge.exposeInMainWorld("jajaFS", {
   saveFile: (name, data, ext) => ipcRenderer.invoke("fs:saveFile", name, data, ext),
   setDirty: (v) => ipcRenderer.send("fs:setDirty", !!v),
   closeNow: () => ipcRenderer.send("fs:closeNow"),
+  settingsGet: () => ipcRenderer.sendSync("settings:get"),
+  settingsSet: (k, v) => ipcRenderer.send("settings:set", k, v),
   onSaveAndClose: (fn) => ipcRenderer.on("app:saveAndClose", () => fn()),
 });

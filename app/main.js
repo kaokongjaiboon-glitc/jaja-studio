@@ -160,6 +160,14 @@ ipcMain.handle("fs:saveFile", async (_e, name, data, ext) => {
   return r.filePath;
 });
 
+/* small settings (audio setup, panel state) kept in a file so they survive even if the browser storage is lost */
+const settingsFile = () => path.join(app.getPath("userData"), "settings.json");
+const readSettings = () => { try { return JSON.parse(fs.readFileSync(settingsFile(), "utf8")); } catch (e) { return {}; } };
+ipcMain.on("settings:get", (e) => { e.returnValue = readSettings(); });
+ipcMain.on("settings:set", (_e, k, v) => {
+  try { const s = readSettings(); s[String(k)] = String(v); const f = settingsFile(), t = f + ".tmp"; fs.writeFileSync(t, JSON.stringify(s)); fs.renameSync(t, f); } catch (e) {}
+});
+
 /* unsaved changes: ask before closing */
 let dirty = false, closing = false;
 ipcMain.on("fs:setDirty", (_e, v) => { dirty = !!v; });

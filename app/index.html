@@ -541,8 +541,13 @@ function h(tag, attrs, ...kids) {
 }
 let toastTimer;
 function toast(msg, ms = 3200) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), ms); }
-const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const DISK_KEYS = ["jaja-studio-audio", "jaja-studio-ins"];   // small settings also mirrored to a file by the desktop app
+const DISK = (() => { try { return (window.jajaFS && window.jajaFS.settingsGet && window.jajaFS.settingsGet()) || {}; } catch (e) { return {}; } })();
+const lsGet = (k) => { let v = null; try { v = localStorage.getItem(k); } catch (e) {} return v != null ? v : (DISK_KEYS.includes(k) && DISK[k] != null ? DISK[k] : null); };
+const lsSet = (k, v) => {
+  try { localStorage.setItem(k, v); } catch (e) {}
+  if (DISK_KEYS.includes(k)) { DISK[k] = v; try { window.jajaFS && window.jajaFS.settingsSet && window.jajaFS.settingsSet(k, v); } catch (e) {} }
+};
 
 /* ---------------------------------------------------------------- music theory */
 const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
