@@ -240,7 +240,8 @@ void Engine::updateChannel (Channel& c, const juce::var& o, int role, std::map<j
                 {
                     auto it = media.find (r["audioId"].toString());
                     if (it != media.end())
-                        c.clips.push_back ({ base, base + len, it->second, (double) r.getProperty ("offset", 0.0), (float) (double) r.getProperty ("gain", 1.0) });
+                        c.clips.push_back ({ base, base + len, it->second, (double) r.getProperty ("offset", 0.0), (float) (double) r.getProperty ("gain", 1.0),
+                                             (double) r.getProperty ("fadeIn", 0.0), (double) r.getProperty ("fadeOut", 0.0) });
                     continue;
                 }
                 if (auto* notes = r["notes"].getArray())
@@ -554,8 +555,17 @@ void Engine::sequence (Channel& c, int s0, int len, double b0, double bps)
             const int i1 = s0 + juce::jlimit (0, len, (int) std::llround ((to - b0) / bps));
             juce::int64 src = (juce::int64) std::llround ((cl.offsetSec + secAt (from) - secAt (cl.start)) * sr);
             const float* dl = d.getReadPointer (0); const float* dr = d.getReadPointer (juce::jmin (1, d.getNumChannels() - 1));
+            // fade envelope (at least 3 ms at every edge so cuts never click)
+            const double D = secAt (cl.end) - secAt (cl.start);
+            const double fi = juce::jmin (D / 2, juce::jmax (0.003, cl.fadeIn)), fo = juce::jmin (D / 2, juce::jmax (0.003, cl.fadeOut));
+            const juce::int64 base = (juce::int64) std::llround (cl.offsetSec * sr);
             for (int i = i0; i < i1; ++i, ++src)
-                if (src >= 0 && src < dn) { L[i] += dl[src] * cl.gain; R[i] += dr[src] * cl.gain; }
+                if (src >= 0 && src < dn)
+                {
+                    const double t = (double) (src - base) / sr;
+                    const float g = cl.gain * (float) (juce::jmin (1.0, juce::jmax (0.0, t) / fi) * juce::jmin (1.0, juce::jmax (0.0, D - t) / fo));
+                    L[i] += dl[src] * g; R[i] += dr[src] * g;
+                }
         }
         return;
     }

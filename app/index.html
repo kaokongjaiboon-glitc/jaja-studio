@@ -66,6 +66,12 @@ button { cursor: pointer; }
 .tlist .trow { display: grid; grid-template-columns: 90px 1fr 26px; gap: 8px; align-items: center; font-size: 12.5px; }
 .tlist .trow .field { height: 26px; width: 100%; }
 .tlist .thead2 { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: .06em; }
+.ae-info { display: flex; gap: 14px; flex-wrap: wrap; font: 11.5px var(--mono); color: var(--fg-2); padding: 4px 2px 6px; }
+.ae-wrap { display: flex; min-width: 0; }
+.ae-names { flex: none; width: 110px; display: flex; flex-direction: column; }
+.ae-name { display: flex; align-items: center; padding: 0 8px; font-size: 11.5px; color: var(--fg); background: #222327; border-bottom: 1px solid #111; }
+.ae-name.take { color: var(--fg-2); cursor: pointer; } .ae-name.take:hover { background: #2c3e57; color: #fff; }
+.ae-scroll { overflow-x: auto; flex: 1; min-width: 0; }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 12.5px; max-height: 60vh; overflow-y: auto; }
 .keys kbd { font: 11.5px var(--mono); color: var(--lcd); background: #17181b; border: 1px solid #0c0d0f; border-radius: 4px; padding: 1px 6px; justify-self: start; }
 @media (max-width: 760px) { .mb-title, .mb-status { display: none; } .mb-brand { display: none; } .mb-items { overflow-x: auto; } }
@@ -141,6 +147,7 @@ body.no-bottom .bottom { display: none; }
 .corner { position: sticky; top: 0; left: 0; z-index: 6; height: 30px; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: linear-gradient(#46484c, #36383c); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .ruler { position: sticky; top: 0; z-index: 4; height: 30px; background: linear-gradient(#55575b, #424448); border-bottom: 1px solid var(--line); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,.45); }
 .ruler .loopband { position: absolute; top: 2px; height: 8px; border-radius: 4px; background: linear-gradient(#77797d, #5d5f63); }
+.ruler .punchband { position: absolute; bottom: 0; height: 4px; background: linear-gradient(#ff7378, #c22b2b); box-shadow: 0 0 6px rgba(229,72,77,.6); pointer-events: none; }
 .ruler .loopband.on { background: linear-gradient(#fbe783, #f0cf2c 60%, #c29f12); box-shadow: inset 0 1px 0 rgba(255,250,225,.7); }
 .ruler .bar i { font-style: normal; color: #ffd36a; }
 .ruler .bar.chg { border-left-color: #ffd36a; }
@@ -161,6 +168,9 @@ body.no-bottom .bottom { display: none; }
 .region .rh { height: 14px; padding: 0 6px; font: 700 10px/14px var(--font); color: #fff; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 1px rgba(0,0,0,.55); }
 .region canvas { display: block; pointer-events: none; }
 .region.sel { outline: 2px solid #fff; outline-offset: -1px; box-shadow: 0 0 10px rgba(255,255,255,.35), 0 3px 6px rgba(0,0,0,.6) !important; }
+.region.muted { opacity: .42; filter: grayscale(.7); }
+.region .fadeh { position: absolute; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,.6); opacity: 0; cursor: ew-resize; z-index: 2; }
+.region:hover .fadeh, .region.sel .fadeh { opacity: .85; }
 .region .grip { position: absolute; bottom: 0; width: 8px; height: 55%; cursor: ew-resize; }
 .region .grip.r { right: 0; } .region .grip.l { left: 0; }
 .region .looph { position: absolute; top: 0; right: 0; width: 12px; height: 45%; cursor: copy; }
@@ -245,7 +255,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .prm output { font: 11px var(--mono); color: var(--lcd); text-align: right; font-variant-numeric: tabular-nums; }
 .prm input[type=range] { width: 100%; accent-color: #9561d0; }
 .eqcanvas { width: 100%; height: 140px; border-radius: 8px; background: #0e0f11; display: block; }
-#sWeb[hidden], #sPro[hidden], .dlg [hidden] { display: none !important; }
+#rollTools[hidden], #audioTools[hidden], #sWeb[hidden], #sPro[hidden], .dlg [hidden] { display: none !important; }
 .inmeters { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; font: 11px var(--mono); color: var(--fg-2); }
 .inmeters i { display: block; height: 8px; border-radius: 3px; background: #17181b; overflow: hidden; }
 .inmeters b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2fb35f 0 70%, #e5c33a 85%, #e5484d); }
@@ -292,6 +302,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       </div>
       <div class="grp modes">
         <button class="tbtn cycle" id="bCycle" title="Cycle วนเล่นช่วงสีเหลือง (C)" aria-label="Cycle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9.5V7a3 3 0 0 1 3-3h7M11 2l2 2-2 2M13 6.5V9a3 3 0 0 1-3 3H3M5 14l-2-2 2-2"/></svg></button>
+        <button class="tbtn" id="bPunch" title="Punch In/Out อัดเฉพาะช่วงสีแดง (Shift+ลากบนไม้บรรทัด)" aria-label="Punch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 3H2v10h2M12 3h2v10h-2"/><circle cx="8" cy="8" r="2.4" fill="#ff6a70" stroke="none"/></svg></button>
         <button class="tbtn" id="bCount" title="Count-in นับ 1 บาร์ก่อนอัด" aria-label="Count-in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12V4l2.5 2-2.5 2M8 4h4l-3 4h3M8 12h5"/></svg></button>
         <button class="tbtn" id="bMetro" title="Metronome เครื่องเคาะจังหวะ (K)" aria-label="Metronome"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2h5l2.5 12H3zM8 11l4-7M4.5 9h7"/></svg></button>
         <button class="tbtn" id="bTyping" title="Musical Typing เล่นโน้ตด้วยคีย์บอร์ดคอม (Ctrl+K)" aria-label="Musical typing"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1.5"/><path d="M4 7h1M7 7h1M10 7h1M5 9.5h6"/></svg></button>
@@ -356,9 +367,19 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       <div class="seg" role="tablist">
         <button id="tabMixer" class="on" role="tab">Mixer</button>
         <button id="tabRoll" role="tab">Piano Roll</button>
+        <button id="tabAudio" role="tab">Audio Editor</button>
       </div>
       <span id="paneHint" style="color:var(--fg-3);font-size:12px"></span>
       <span style="flex:1"></span>
+      <span id="audioTools" hidden style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn small" id="aeDel" title="ลบช่วงที่ลากเลือก">ลบช่วงที่เลือก</button>
+        <button class="btn small" id="aeCrop" title="เก็บไว้เฉพาะช่วงที่เลือก">เก็บเฉพาะที่เลือก</button>
+        <button class="btn small" id="aeFin">Fade In</button><button class="btn small" id="aeFout">Fade Out</button>
+        <button class="btn small" id="aeNorm">Normalize</button><button class="btn small" id="aeRev">Reverse</button>
+        <button class="btn small" id="aeStrip">Strip Silence</button>
+        <button class="btn small" id="aeFlexT">Flex Time</button><button class="btn small" id="aeFlexP">Flex Pitch</button>
+        <button class="btn small" id="aeZoomOut" aria-label="ซูมออก">−</button><button class="btn small" id="aeZoomIn" aria-label="ซูมเข้า">+</button>
+      </span>
       <span id="rollTools" hidden style="display:flex;gap:8px;align-items:center">
         <label class="lbl" for="prGrid">Grid</label>
         <select class="field" id="prGrid" style="height:24px">
@@ -370,6 +391,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     </div>
     <div class="pane" id="paneMixer"><div class="strips" id="strips"></div></div>
     <div class="pane" id="paneRoll" hidden><div class="pr" id="pr"></div></div>
+    <div class="pane" id="paneAudio" hidden><div class="ae" id="ae"></div></div>
   </section>
 </div>
 
@@ -410,6 +432,35 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   <div class="tlist" id="sigRows"></div>
   <button type="button" class="btn small" id="sigAdd" style="align-self:flex-start">+ เปลี่ยนจังหวะ (Signature) ที่บาร์ของหัวเล่น</button>
   <div class="acts"><button class="btn primary" value="ok">เสร็จ</button></div>
+</form></dialog>
+
+<dialog id="dlgStrip" style="width:min(460px, calc(100vw - 32px))"><form method="dialog" class="dlg">
+  <h2>Strip Silence</h2>
+  <p>ตัดช่วงเงียบออกจาก region เสียง แบ่งเป็นท่อนเฉพาะที่มีเสียง</p>
+  <div class="prm"><span>Threshold</span><input type="range" id="ssThr" min="-70" max="-10" step="1" value="-40"><output id="ssThrV"></output></div>
+  <div class="prm"><span>เงียบนานกว่า</span><input type="range" id="ssMin" min="50" max="2000" step="10" value="250"><output id="ssMinV"></output></div>
+  <div class="prm"><span>เผื่อหน้า</span><input type="range" id="ssPre" min="0" max="200" step="5" value="20"><output id="ssPreV"></output></div>
+  <div class="prm"><span>เผื่อหลัง</span><input type="range" id="ssPost" min="0" max="500" step="5" value="80"><output id="ssPostV"></output></div>
+  <div class="stat" id="ssCount"></div>
+  <div class="acts"><button class="btn" value="cancel">ยกเลิก</button><button class="btn primary" value="ok">ตัดช่วงเงียบ</button></div>
+</form></dialog>
+
+<dialog id="dlgFlex" style="width:min(480px, calc(100vw - 32px))"><form method="dialog" class="dlg">
+  <h2 id="flexTitle">Flex</h2>
+  <div id="fxTimeBox" style="display:flex;flex-direction:column;gap:10px">
+    <p>ยืดหรือหดเวลาของเสียงโดยคีย์ไม่เปลี่ยน (หรือกด Alt ค้างแล้วลากท้าย region)</p>
+    <div class="prm"><span>ความยาว</span><input type="range" id="flRatio" min="25" max="400" step="1" value="100"><output id="flRatioV"></output></div>
+    <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--fg-2)">Tempo ต้นฉบับ <input class="field" id="flSrcBpm" type="number" min="40" max="300" step="0.01" style="width:90px"> <button type="button" class="btn small" id="flFollow">ปรับให้ตรง Tempo เพลง</button></div>
+  </div>
+  <div id="fxPitchBox" style="display:flex;flex-direction:column;gap:10px">
+    <p>เปลี่ยนคีย์เสียงโดยความยาวไม่เปลี่ยน และจูนเสียงร้องให้ตรงโน้ตในคีย์ของเพลง</p>
+    <div class="prm"><span>Transpose</span><input type="range" id="flSemis" min="-12" max="12" step="1" value="0"><output id="flSemisV"></output></div>
+    <div class="prm"><span>Fine</span><input type="range" id="flCents" min="-100" max="100" step="1" value="0"><output id="flCentsV"></output></div>
+    <div class="prm"><span>จูนเสียง</span><input type="range" id="flCorrect" min="0" max="100" step="1" value="0"><output id="flCorrectV"></output></div>
+    <div class="prm"><span>ความเร็วจูน</span><input type="range" id="flSpeed" min="0" max="200" step="5" value="40"><output id="flSpeedV"></output></div>
+    <p id="flKey" style="font-size:11.5px"></p>
+  </div>
+  <div class="acts"><button type="button" class="btn" id="flReset">คืนต้นฉบับ</button><button class="btn" value="cancel">ยกเลิก</button><button class="btn primary" value="ok">ใช้</button></div>
 </form></dialog>
 
 <dialog id="dlgHelp" style="width:min(560px, calc(100vw - 32px))"><form method="dialog" class="dlg">
@@ -710,7 +761,7 @@ function defaultAux() {
   ];
 }
 function migrate(p) {
-  p.v = 2; p.media = p.media || {}; p.markers = p.markers || []; p.loop = p.loop || { on: false, start: 0, end: 16 };
+  p.v = 2; p.media = p.media || {}; p.markers = p.markers || []; p.punch = p.punch || { on: false, start: 0, end: 0 }; p.loop = p.loop || { on: false, start: 0, end: 16 };
   p.master = Object.assign({ vol: 0.7071, fx: [newFx("limiter")] }, p.master || {}); if (!p.master.fx) p.master.fx = [newFx("limiter")];
   if (!p.aux) p.aux = defaultAux();
   for (const a of p.aux) { a.fx = a.fx || []; a.sends = {}; }
@@ -951,11 +1002,11 @@ function scheduleRange(env, b0, b1, t0) {
     if (t.auto.on.pan && t.auto.pan.length) { const v = autoValue(t.auto.pan, b1); if (env.first) ch.pan.pan.setValueAtTime(autoValue(t.auto.pan, b0), t0); ch.pan.pan.linearRampToValueAtTime(v, tAt(b1)); }
     for (const r of t.regions) {
       const loops = r.loops || 1;
-      if (r.start >= b1 || rEnd(r) <= b0) continue;
+      if (r.mute || r.start >= b1 || rEnd(r) <= b0) continue;
       for (let k = 0; k < loops; k++) {
         const base = r.start + k * r.len;
         if (base >= b1 || base + r.len <= b0) continue;
-        if (t.kind === "audio") { if (base >= b0 && base < b1) startAudio(env, r, tAt(base), 0, out, base); continue; }
+        if (t.kind === "audio") { for (const c of expandRegion(r, base)) if (c.start >= b0 && c.start < b1) playClip(env, c, tAt(c.start), 0, out); continue; }
         for (const n of r.notes) {
           if (n.s >= r.len || n.s < 0) continue;
           const ab = base + n.s; if (ab < b0 || ab >= b1) continue;
@@ -968,21 +1019,49 @@ function scheduleRange(env, b0, b1, t0) {
   env.first = false;
   if (env.metro) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) clickVoice(env.c, env.c.destination, tAt(b), isBarStart(b));
 }
-function startAudio(env, r, when, intoBeats, out, base) {
-  const B = buffers.get(r.audioId); if (!B) return;
+/* ---- audio regions -> playable clips (handles take folders / comping, fades and mute) */
+const EDGE_FADE = 0.003;   // every clip edge gets a 3 ms fade so cuts never click
+function expandRegion(r, base) {
   base = base ?? r.start;
-  const off = (r.offset || 0) + secAt(base + intoBeats) - secAt(base), len = secAt(base + r.len) - secAt(base + intoBeats);
-  if (len <= 0 || off >= B.buf.duration) return;
+  if (r.mute) return [];
+  const g = r.gain ?? 1;
+  if (!r.takes) return r.audioId ? [{ audioId: r.audioId, start: base, len: r.len, offset: r.offset || 0, gain: g, fadeIn: r.fadeIn || 0, fadeOut: r.fadeOut || 0 }] : [];
+  const out = [];
+  for (const seg of r.comp || []) {
+    const tk = r.takes[seg.take]; if (!tk) continue;
+    const a = Math.max(seg.a, tk.rs, 0), b = Math.min(seg.b, tk.rs + tk.len, r.len);
+    if (b - a < 1e-6) continue;
+    out.push({ audioId: tk.audioId, start: base + a, len: b - a, offset: (tk.offset || 0) + secAt(base + a) - secAt(base + tk.rs), gain: g, fadeIn: 0.008, fadeOut: 0.008, take: seg.take });
+  }
+  out.sort((x, y) => x.start - y.start);
+  if (out.length) {
+    if (out[0].start - base < 1e-6) out[0].fadeIn = Math.max(out[0].fadeIn, r.fadeIn || 0);
+    const last = out[out.length - 1]; if (Math.abs(last.start + last.len - (base + r.len)) < 1e-6) last.fadeOut = Math.max(last.fadeOut, r.fadeOut || 0);
+  }
+  return out;
+}
+const regionClips = (r) => { const out = []; for (let k = 0; k < (r.loops || 1); k++) out.push(...expandRegion(r, r.start + k * r.len)); return out; };
+/* play one clip from `into` beats after its start, with its fade envelope */
+function playClip(env, c, when, into, out) {
+  const B = buffers.get(c.audioId); if (!B) return;
+  const D = secAt(c.start + c.len) - secAt(c.start), e0 = secAt(c.start + into) - secAt(c.start), off = c.offset + e0, len = D - e0;
+  if (len <= 0.0005 || off >= B.buf.duration) return;
   const s = env.c.createBufferSource(); s.buffer = B.buf;
-  const g = env.c.createGain(); g.gain.value = r.gain ?? 1; s.connect(g); g.connect(out);
-  s.start(Math.max(when, env.c.currentTime), off, len);
+  const g = env.c.createGain(), gp = g.gain, fi = Math.min(D / 2, Math.max(EDGE_FADE, c.fadeIn || 0)), fo = Math.min(D / 2, Math.max(EDGE_FADE, c.fadeOut || 0));
+  const t0 = Math.max(when, env.c.currentTime), envAt = (t) => c.gain * Math.min(1, t / fi) * Math.min(1, Math.max(0, D - t) / fo);
+  gp.setValueAtTime(envAt(e0), t0);
+  if (e0 < fi) gp.linearRampToValueAtTime(c.gain, t0 + (fi - e0));
+  if (D - fo > e0) gp.setValueAtTime(c.gain, t0 + (D - fo - e0));
+  gp.linearRampToValueAtTime(0, t0 + (D - e0));
+  s.connect(g); g.connect(out);
+  s.start(t0, off, len);
   (env.sources || (env.sources = [])).push(s);
 }
 function startAudioSpanning(env, b, t0) {
   for (const t of env.tracks) {
     if (t.kind !== "audio") continue;
     const out = env.mix.tracks.get(t.id)?.in; if (!out) continue;
-    for (const r of t.regions) for (let k = 0; k < (r.loops || 1); k++) { const base = r.start + k * r.len; if (base < b && base + r.len > b) startAudio(env, r, t0, b - base, out, base); }
+    for (const r of t.regions) for (const c of regionClips(r)) if (c.start < b - 1e-9 && c.start + c.len > b) playClip(env, c, t0, b - c.start, out);
   }
 }
 
@@ -1110,7 +1189,7 @@ function finishRecording() {
   if (R.kind === "midi") {
     const now = currentBeatSafe();
     for (const [p, o] of R.open) R.notes.push({ s: o.b, l: Math.max(0.05, now - o.b), p, v: o.v });
-    const notes = R.notes.filter((n) => n.s >= R.startBeat - 0.05);
+    const notes = R.notes.filter((n) => n.s >= R.startBeat - 0.05 && (!P.punch?.on || (n.s >= P.punch.start - 0.05 && n.s < P.punch.end)));
     if (!notes.length) { toast("ไม่ได้อัดโน้ตไว้"); return; }
     mark();
     const start = barFloor(Math.max(0, Math.min(...notes.map((n) => n.s)))), end = barCeil(Math.max(...notes.map((n) => n.s + n.l)));
@@ -1129,7 +1208,7 @@ function finishRecording() {
         const buf = await ctx.decodeAudioData(await new Blob(x.chunks).arrayBuffer());
         if (!marked) { mark(); marked = true; }
         const id = uid(); buffers.set(id, { buf, name: "Take" }); persistAudio(id);
-        x.track.regions.push({ id: uid(), name: "Take " + (x.track.regions.length + 1), start: Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), buf.duration), loops: 1, audioId: id, offset: 0 });
+        addTake(x.track, { id: uid(), name: "Take " + (x.track.regions.length + 1), start: Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(R.startBeat) - SET.offsetMs / 1000)), buf.duration), loops: 1, audioId: id, offset: 0 });
         n++;
       } catch (e) { toast("อ่านไฟล์ที่อัดไม่ได้: " + e.message); }
     }
@@ -1185,7 +1264,8 @@ function engProject() {
     bpm: P.bpm, tempos: tempoChanges(), sigs: sigList(), loop: P.loop, metro: !!P.metro,
     master: { vol: P.master.vol, fx: fx("master", P.master.fx) },
     aux: P.aux.map((a) => ({ ...a, fx: fx(a.id, a.fx) })),
-    tracks: P.tracks.map((t) => ({ ...t, vst: t.kind === "synth" ? vst(t.id + ":inst", t.vst) : null, fx: fx(t.id, t.fx) })),
+    tracks: P.tracks.map((t) => ({ ...t, vst: t.kind === "synth" ? vst(t.id + ":inst", t.vst) : null, fx: fx(t.id, t.fx),
+      regions: t.kind === "audio" ? t.regions.flatMap(regionClips).map((c) => ({ start: c.start, len: c.len, loops: 1, audioId: c.audioId, offset: c.offset, gain: c.gain, fadeIn: c.fadeIn, fadeOut: c.fadeOut })) : t.regions.filter((r) => !r.mute) })),
   };
 }
 function engPush(now) {
@@ -1296,7 +1376,7 @@ async function engRecorded(takes) {
       const buf = await ctx.decodeAudioData(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength));
       buffers.set(tk.id, { buf, name: "Take", path: tk.path }); P.media[tk.id] = tk.path;
     } catch (e) { toast("อ่านไฟล์ที่อัดไม่ได้: " + e.message); }
-    t.regions.push({ id: uid(), name: "Take " + (t.regions.length + 1), start: Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), tk.seconds), loops: 1, audioId: tk.id, offset: 0 });
+    addTake(t, { id: uid(), name: "Take " + (t.regions.length + 1), start: Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), len: beatsFor(Math.max(0, beatAtSec(secAt(tk.startBeat) - SET.offsetMs / 1000)), tk.seconds), loops: 1, audioId: tk.id, offset: 0 });
   }
   render(); autosave();
   toast(`บันทึกเสียงแล้ว ${takes.length} แทร็ก · ไฟล์อยู่ที่ Documents\\JAJA Studio\\Recordings`, 5000);
@@ -1410,7 +1490,7 @@ function lightSelect(trackId, regionId, add) {
   document.querySelectorAll(".thead[data-head]").forEach((x) => x.classList.toggle("sel", x.dataset.head === trackId));
   renderInspector(); renderMixer(); if (ui.tab === "roll") renderRoll();
 }
-function render() { renderArrange(); renderInspector(); renderMixer(); renderRoll(); draw(); updateUndoBtns(); }
+function render() { renderArrange(); renderInspector(); renderMixer(); renderRoll(); renderAudioEd(); draw(); updateUndoBtns(); }
 
 /* collapsible inspector sections (like the disclosure triangles in Logic's inspector); closed by default */
 const INS_OPEN = (() => { try { return JSON.parse(lsGet("jaja-studio-ins") || "{}"); } catch (e) { return {}; } })();
@@ -1476,7 +1556,7 @@ function renderArrange() {
   const g = $("#arrGrid"), HW = ui.hw, bars = totalBars(), W = barStartBeat(bars) * ui.beatPx, sc = $("#arrScroll"), keep = [sc.scrollLeft, sc.scrollTop];
   g.style.gridTemplateColumns = `${HW}px ${W}px`;
   g.replaceChildren();
-  const ruler = h("div", { class: "ruler", id: "ruler" }, h("div", { class: "loopband" + (P.loop.on ? " on" : ""), id: "loopband" }));
+  const ruler = h("div", { class: "ruler", id: "ruler" }, h("div", { class: "loopband" + (P.loop.on ? " on" : ""), id: "loopband" }), h("div", { class: "punchband", id: "punchband" }));
   const every = ui.beatPx < 14 ? 4 : ui.beatPx < 22 ? 2 : 1;
   const tempoAt = new Map(tempoChanges().map((t) => [barAt(t.b).bar, t])), sigAt = new Map(sigList().filter((x) => x.bar > 0).map((x) => [x.bar, x]));
   const barXs = [];
@@ -1570,14 +1650,19 @@ function autoLaneEl(t, W) {
 /* regions */
 function regionEl(t, r) {
   const loops = r.loops || 1, W1 = Math.max(6, r.len * ui.beatPx), W = W1 * loops, sel = ui.sel.has(r.id);
-  const el = h("div", { class: "region" + (sel ? " sel" : ""), "data-region": r.id, style: `left:${r.start * ui.beatPx}px;width:${W}px;background:linear-gradient(${rgba(t.color, 0.62)}, ${rgba(t.color, 0.36)});border:1px solid ${shade(t.color, 0.55)};box-shadow:0 3px 6px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2)` });
+  const el = h("div", { class: "region" + (sel ? " sel" : "") + (r.mute ? " muted" : ""), "data-region": r.id, style: `left:${r.start * ui.beatPx}px;width:${W}px;background:linear-gradient(${rgba(t.color, 0.62)}, ${rgba(t.color, 0.36)});border:1px solid ${shade(t.color, 0.55)};box-shadow:0 3px 6px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2)` });
   const missing = t.kind === "audio" && !buffers.has(r.audioId);
-  el.append(h("div", { class: "rh", style: `background:linear-gradient(${shade(t.color, 1.18)}, ${shade(t.color, 0.85)})` }, missing ? r.name + " (ไม่มีไฟล์เสียง นำเข้าใหม่)" : r.name));
+  el.append(h("div", { class: "rh", style: `background:linear-gradient(${shade(t.color, 1.18)}, ${shade(t.color, 0.85)})` }, (r.mute ? "🔇 " : "") + (missing && !r.takes ? r.name + " (ไม่มีไฟล์เสียง นำเข้าใหม่)" : r.name) + (r.takes ? ` · ${r.takes.length} เทค` : "") + (r.flex ? " · Flex" : "")));
   const cv = h("canvas", { width: Math.min(W, 8000), height: 37, style: `width:${W}px;height:37px` });
   el.append(cv, h("div", { class: "grip l", title: "ลากเพื่อตัดต้น" }), h("div", { class: "grip r", title: "ลากเพื่อเปลี่ยนความยาว" }), h("div", { class: "looph", title: "ลากเพื่อวนซ้ำ (Loop)" }));
+  if (t.kind === "audio" && loops === 1) {
+    const fiPx = (beatsFor(r.start, r.fadeIn || 0)) * ui.beatPx, foPx = (r.len - beatsFor(r.start, Math.max(0, secAt(r.start + r.len) - secAt(r.start) - (r.fadeOut || 0)))) * ui.beatPx;
+    el.append(h("div", { class: "fadeh in", title: "ลากเพื่อ Fade In", style: `left:${Math.max(0, fiPx - 5)}px` }), h("div", { class: "fadeh out", title: "ลากเพื่อ Fade Out", style: `right:${Math.max(0, foPx - 5)}px` }));
+  }
   drawRegionPreview(cv, t, r);
   el.addEventListener("pointerdown", (e) => regionPointer(e, t, r, el));
-  el.addEventListener("dblclick", () => { if (t.kind !== "audio") { selectRegion(r.id); setTab("roll"); } });
+  el.addEventListener("contextmenu", (e) => regionMenu(e, t, r));
+  el.addEventListener("dblclick", () => { selectRegion(r.id); openPane(t.kind === "audio" ? "audio" : "roll"); });
   return el;
 }
 function drawRegionPreview(cv, t, r) {
@@ -1588,10 +1673,19 @@ function drawRegionPreview(cv, t, r) {
     g.globalAlpha = k ? 0.45 : 1;
     if (k) { g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(x0, 0, 1, H); }
     if (t.kind === "audio") {
-      const B = buffers.get(r.audioId); if (!B) continue;
-      const pk = peaksOf(B), pps = pk.length / B.buf.duration, base = r.start + k * r.len, s0 = secAt(base);
+      const base = r.start + k * r.len, gain = Math.min(2, r.gain ?? 1);
       g.fillStyle = "rgba(255,255,255,.8)";
-      for (let x = 0; x < ws; x++) { const sec = (r.offset || 0) + secAt(base + (x / ws) * r.len) - s0, i = Math.floor(sec * pps); if (i >= pk.length) break; const a = pk[i] * (H / 2 - 1); g.fillRect(x0 + x, H / 2 - a, 1, Math.max(1, a * 2)); }
+      for (const c of expandRegion({ ...r, mute: false }, base)) {
+        const B = buffers.get(c.audioId); if (!B) continue;
+        const pk = peaksOf(B), pps = pk.length / B.buf.duration, xa = ((c.start - base) / r.len) * ws, xb = ((c.start + c.len - base) / r.len) * ws, cs = secAt(c.start);
+        for (let x = Math.floor(xa); x < xb; x++) { const sec = c.offset + secAt(base + (x / ws) * r.len) - cs, i = Math.floor(sec * pps); if (i < 0) continue; if (i >= pk.length) break; const a = Math.min(1, pk[i] * gain) * (H / 2 - 1); g.fillRect(x0 + x, H / 2 - a, 1, Math.max(1, a * 2)); }
+        if (r.takes && c.start > base + 1e-6) { g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(x0 + xa, 0, 1, H); g.fillStyle = "rgba(255,255,255,.8)"; }
+      }
+      // fades: darken the faded part and draw the fade line
+      const fiW = (beatsFor(base, r.fadeIn || 0) / r.len) * ws, foW = ((base + r.len - beatAtSec(secAt(base + r.len) - (r.fadeOut || 0))) / r.len) * ws;
+      g.fillStyle = "rgba(0,0,0,.45)"; g.strokeStyle = "rgba(255,255,255,.9)"; g.lineWidth = 1;
+      if (fiW > 1) { g.beginPath(); g.moveTo(x0, 0); g.lineTo(x0 + fiW, 0); g.lineTo(x0, H); g.closePath(); g.fill(); g.beginPath(); g.moveTo(x0, H); g.lineTo(x0 + fiW, 0); g.stroke(); }
+      if (foW > 1) { g.beginPath(); g.moveTo(x0 + ws, 0); g.lineTo(x0 + ws - foW, 0); g.lineTo(x0 + ws, H); g.closePath(); g.fill(); g.beginPath(); g.moveTo(x0 + ws - foW, 0); g.lineTo(x0 + ws, H); g.stroke(); }
       continue;
     }
     if (!r.notes.length) continue;
@@ -1613,7 +1707,7 @@ const snapBeat = (b, fine) => { const s = fine ? 0.25 : snapVal(); if (s === 4) 
 function regionPointer(e, t, r, el) {
   if (e.button !== 0) return;
   e.preventDefault();
-  const cls = e.target.classList, mode = cls.contains("looph") ? "loop" : cls.contains("grip") ? (cls.contains("l") ? "trim" : "resize") : "move";
+  const cls = e.target.classList, mode = cls.contains("fadeh") ? (cls.contains("in") ? "fadein" : "fadeout") : cls.contains("looph") ? "loop" : cls.contains("grip") ? (cls.contains("l") ? "trim" : "resize") : "move";
   if (e.shiftKey || e.ctrlKey || e.metaKey) { lightSelect(t.id, r.id, true); return; }
   if (!ui.sel.has(r.id)) { ui.noteSel = -1; lightSelect(t.id, r.id); } else { ui.regionId = r.id; ui.trackId = t.id; renderInspector(); }
   const group = mode === "move" ? [...ui.sel].map(findRegion).filter(Boolean) : [{ t, r }];
@@ -1625,7 +1719,15 @@ function regionPointer(e, t, r, el) {
     if (!moved && Math.abs(ev.clientX - x0) < 3) return;
     if (!moved) { moved = true; H.undo.push(snap); if (H.undo.length > 120) H.undo.shift(); H.redo.length = 0; }
     const o = orig[0];
-    if (mode === "resize") { r.len = Math.max(0.25, snapBeat(o.len + db / o.loops, ev.shiftKey)); }
+    if (mode === "fadein" || mode === "fadeout") {
+      const D = secAt(r.start + r.len) - secAt(r.start), px = (ev.clientX - el.getBoundingClientRect().left) / ui.beatPx;
+      if (mode === "fadein") r.fadeIn = clamp(secAt(r.start + clamp(px, 0, r.len)) - secAt(r.start), 0, D * 0.9);
+      else r.fadeOut = clamp(secAt(r.start + r.len) - secAt(r.start + clamp(px, 0, r.len)), 0, D * 0.9);
+      drawRegionPreview(el.querySelector("canvas"), t, r);
+      return;
+    }
+    if (mode === "resize" && ev.altKey && t.kind === "audio") { r.len = Math.max(0.25, snapBeat(o.len + db, ev.shiftKey)); el.classList.add("stretching"); }
+    else if (mode === "resize") { r.len = Math.max(0.25, snapBeat(o.len + db / o.loops, ev.shiftKey)); }
     else if (mode === "loop") { r.loops = Math.max(1, Math.round((o.len * o.loops + db) / o.len)); }
     else if (mode === "trim") {
       const d = clamp(snapBeat(db, ev.shiftKey), -o.start, o.len - 0.25);
@@ -1637,7 +1739,12 @@ function regionPointer(e, t, r, el) {
   };
   const up = () => {
     el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
-    if (moved) { if (mode === "trim" && r.notes) r.notes = r.notes.filter((n) => n.s >= 0 || n.s + n.l > 0).map((n) => (n.s < 0 ? Object.assign(n, { l: n.l + n.s, s: 0 }) : n)); autosave(); render(); }
+    if (moved) {
+      if (mode === "trim" && r.notes) r.notes = r.notes.filter((n) => n.s >= 0 || n.s + n.l > 0).map((n) => (n.s < 0 ? Object.assign(n, { l: n.l + n.s, s: 0 }) : n));
+      if (mode === "trim" && r.takes) { const d = r.start - orig[0].start; for (const tk of r.takes) tk.rs -= d; for (const c of r.comp || []) { c.a -= d; c.b -= d; } }
+      autosave(); render();
+      if (el.classList.contains("stretching")) flexStretchTo(r, orig[0].len);   // Alt + drag the end = Flex Time
+    }
   };
   el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
 }
@@ -1701,6 +1808,8 @@ function splitOne(t, r, c, ids) {
   const right = Object.assign(JSON.parse(JSON.stringify(r)), { id: uid(), start: c, len: r.len - cut });
   if (r.notes) { right.notes = r.notes.filter((n) => n.s >= cut).map((n) => ({ ...n, s: n.s - cut })); r.notes = r.notes.filter((n) => n.s < cut); }
   if (r.audioId) right.offset = (r.offset || 0) + secAt(r.start + cut) - secAt(r.start);
+  if (r.takes) { for (const tk of right.takes) tk.rs -= cut; right.comp = (r.comp || []).filter((c) => c.b > cut).map((c) => ({ ...c, a: Math.max(0, c.a - cut), b: c.b - cut })); r.comp = (r.comp || []).filter((c) => c.a < cut).map((c) => ({ ...c, b: Math.min(c.b, cut) })); }
+  if (r.fadeOut) { right.fadeOut = r.fadeOut; r.fadeOut = 0; } right.fadeIn = 0;
   r.len = cut; t.regions.push(right); ids.push(right.id);
 }
 function quantizeSelected() {
@@ -1729,8 +1838,12 @@ function bindRuler(ruler) {
   ruler.addEventListener("pointerdown", (e) => {
     const rect = ruler.getBoundingClientRect(), bx = (x) => (x - rect.left) / ui.beatPx;
     if (e.clientY - rect.top < 12) {
-      ruler.setPointerCapture(e.pointerId); const a = barFloor(Math.max(0, bx(e.clientX)));
-      const mv = (ev) => { const b = barCeil(Math.max(0, bx(ev.clientX))); P.loop.start = Math.min(a, b); P.loop.end = Math.max(a, b, a + barAt(a).len); P.loop.on = true; updateLoopBand(); };
+      ruler.setPointerCapture(e.pointerId); const a = barFloor(Math.max(0, bx(e.clientX))), punch = e.shiftKey;
+      const mv = (ev) => {
+        const b = barCeil(Math.max(0, bx(ev.clientX))), lo = Math.min(a, b), hi = Math.max(a, b, a + barAt(a).len);
+        if (punch) { P.punch = { on: true, start: lo, end: hi }; } else { P.loop.start = lo; P.loop.end = hi; P.loop.on = true; }
+        updateLoopBand();
+      };
       const up = () => { ruler.removeEventListener("pointermove", mv); ruler.removeEventListener("pointerup", up); autosave(); };
       ruler.addEventListener("pointermove", mv); ruler.addEventListener("pointerup", up); mv(e);
     } else seek(snapBeat(bx(e.clientX), e.shiftKey));
@@ -1738,6 +1851,8 @@ function bindRuler(ruler) {
 }
 function updateLoopBand() {
   const lb = $("#loopband"); if (lb) { lb.style.left = P.loop.start * ui.beatPx + "px"; lb.style.width = (P.loop.end - P.loop.start) * ui.beatPx + "px"; lb.classList.toggle("on", P.loop.on); }
+  const pb = $("#punchband"); if (pb) { pb.hidden = !P.punch?.on; if (P.punch) { pb.style.left = P.punch.start * ui.beatPx + "px"; pb.style.width = (P.punch.end - P.punch.start) * ui.beatPx + "px"; } }
+  $("#bPunch")?.classList.toggle("on", !!P.punch?.on);
   $("#bCycle").classList.toggle("on", P.loop.on);
 }
 
@@ -1895,9 +2010,10 @@ function drawEqCurve(cv, p, thumb) {
 /* ---------------------------------------------------------------- piano roll with velocity lane */
 function setTab(tab) {
   ui.tab = tab;
-  $("#tabMixer").classList.toggle("on", tab === "mixer"); $("#tabRoll").classList.toggle("on", tab === "roll");
+  $("#tabMixer").classList.toggle("on", tab === "mixer"); $("#tabRoll").classList.toggle("on", tab === "roll"); $("#tabAudio").classList.toggle("on", tab === "audio");
   $("#paneMixer").hidden = tab !== "mixer"; $("#paneRoll").hidden = tab !== "roll"; $("#rollTools").hidden = tab !== "roll";
-  renderRoll(); syncViewBtns();
+  $("#paneAudio").hidden = tab !== "audio"; $("#audioTools").hidden = tab !== "audio";
+  renderRoll(); renderAudioEd(); syncViewBtns();
 }
 /* menu bar: File Edit Track Navigate Record Mix View Window Help */
 const selTrack = () => trackById(ui.trackId);
@@ -1932,6 +2048,16 @@ const MENUS = () => ({
     ["Split ตัดที่หัวเล่น", "Ctrl+T", splitAtPlayhead, () => ui.sel.size],
     ["Select All เลือกทั้งหมด", "Ctrl+A", () => { ui.sel = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.id))); ui.regionId = [...ui.sel].pop() || null; render(); }],
     ["Quantize จัดโน้ตให้ตรงจังหวะ", "Q", quantizeSelected],
+    "-",
+    ["Mute region", "Ctrl+M", toggleMuteRegions, () => ui.sel.size],
+    ["Join รวม region", "Ctrl+J", joinRegions, () => ui.sel.size > 1],
+    ["Nudge ขยับซ้าย/ขวา", "Alt+←/→", () => toast("กด Alt+ลูกศร เพื่อขยับทีละ 1/16, Alt+Shift+ลูกศร = ทีละบาร์")],
+    ["Crossfade (2 region ที่ติดกัน)", "", () => crossfadeSelected(0.05), () => audioSel().length > 1],
+    ["Normalize", "", normalizeRegions, () => audioSel().length],
+    ["Reverse", "", reverseRegions, () => audioSel().length],
+    ["Strip Silence…", "", openStripSilence, () => audioSel().length],
+    ["Flex Time…", "", () => openFlex("time"), () => audioSel().length],
+    ["Flex Pitch…", "", () => openFlex("pitch"), () => audioSel().length],
   ],
   Track: [
     ["New Software Instrument (Synth)", "", () => addTrack("synth")],
@@ -1958,6 +2084,8 @@ const MENUS = () => ({
     ["Record อัด", "R", toggleRecord],
     "-",
     ["Count-in นับ 1 บาร์ก่อนอัด", "", () => $("#bCount").click(), null, () => !!P.countIn],
+    ["Punch In/Out (อัดเฉพาะช่วงสีแดง)", "", () => togglePunch(), null, () => !!P.punch?.on],
+    ["ตั้งช่วง Punch = ช่วง Cycle", "", () => { P.punch = { on: true, start: P.loop.start, end: P.loop.end }; updateLoopBand(); autosave(); }],
     ["Metronome เครื่องเคาะ", "K", () => $("#bMetro").click(), null, () => !!P.metro],
     ["Musical Typing คีย์บอร์ดคอม", "Ctrl+K", () => setTyping(!ui.typing), null, () => ui.typing],
     "-",
@@ -1975,6 +2103,7 @@ const MENUS = () => ({
     ["Inspector", "I", toggleInspector, null, () => !document.body.classList.contains("no-inspector")],
     ["Mixer", "X", () => showPane("mixer"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "mixer"],
     ["Piano Roll", "P", () => showPane("roll"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "roll"],
+    ["Audio Editor", "E", () => showPane("audio"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "audio"],
   ],
   Window: [
     ["เพิ่มท่อน (Arrangement Marker)", "", () => addMarker()],
@@ -2065,7 +2194,7 @@ function openHelp() {
 function syncViewBtns() {
   const b = document.body.classList, shown = !b.contains("no-bottom");
   const set = (id, on) => { const el = $(id); if (el) { el.classList.toggle("on", on); el.setAttribute("aria-pressed", on ? "true" : "false"); } };
-  set("#vInspector", !b.contains("no-inspector")); set("#vMixer", shown && ui.tab === "mixer"); set("#vRoll", shown && ui.tab === "roll");
+  set("#vInspector", !b.contains("no-inspector")); set("#vMixer", shown && ui.tab === "mixer"); set("#vRoll", shown && (ui.tab === "roll" || ui.tab === "audio"));
   lsSet("jaja-studio-view", JSON.stringify({ ins: !b.contains("no-inspector"), bottom: shown, tab: ui.tab }));
 }
 function showPane(kind) {
@@ -2074,6 +2203,7 @@ function showPane(kind) {
   else { b.remove("no-bottom"); setTab(kind); }
   syncViewBtns();
 }
+function openPane(kind) { document.body.classList.remove("no-bottom"); setTab(kind); syncViewBtns(); }
 function toggleInspector() { document.body.classList.toggle("no-inspector"); syncViewBtns(); }
 function toggleFileMenu(force) {
   const m = $("#fileMenu"), open = force ?? m.hidden;
@@ -2083,7 +2213,7 @@ function toggleFileMenu(force) {
 const PR = { lo: 24, hi: 96, rowH: 13, velH: 64 };
 const rollRows = (t) => (t.kind === "drums" ? DRUMS.map((d) => d.p) : Array.from({ length: PR.hi - PR.lo + 1 }, (_, i) => PR.hi - i));
 function renderRoll() {
-  $("#paneHint").textContent = ui.tab === "roll" ? "คลิก = เพิ่มโน้ต · ลาก = ย้าย · ลากขอบขวา = ยืด · ดับเบิลคลิก/คลิกขวา = ลบ · แถบล่าง = ความแรง (velocity)" : "fader: ลากขึ้นลง ดับเบิลคลิก = 0 dB · ช่องม่วง = Send ไป Bus · คลิก + Audio FX เพื่อใส่เอฟเฟกต์";
+  $("#paneHint").textContent = ui.tab === "audio" ? "" : ui.tab === "roll" ? "คลิก = เพิ่มโน้ต · ลาก = ย้าย · ลากขอบขวา = ยืด · ดับเบิลคลิก/คลิกขวา = ลบ · แถบล่าง = ความแรง (velocity)" : "fader: ลากขึ้นลง ดับเบิลคลิก = 0 dB · ช่องม่วง = Send ไป Bus · คลิก + Audio FX เพื่อใส่เอฟเฟกต์";
   if (ui.tab !== "roll") return;
   const box = $("#pr"), f = ui.regionId && findRegion(ui.regionId);
   if (!f || f.t.kind === "audio") { box.replaceChildren(h("div", { class: "pr-empty" }, "ดับเบิลคลิก region ของแทร็ก Synth หรือ Drums เพื่อแก้โน้ตที่นี่")); return; }
@@ -2198,6 +2328,7 @@ function frame() {
     document.querySelectorAll("[data-led]").forEach((el) => { const L = levels[el.dataset.led] || 0; el.style.background = L > 0.05 ? "radial-gradient(circle at 35% 30%, #b8ffcb, #2fb35f)" : "#3a3b3f"; el.style.boxShadow = L > 0.05 ? "0 0 5px rgba(70,195,107,.8)" : "none"; });
   }
   if ($("#dlgSetup").open) drawInputMeters();
+  if (T.playing && ui.tab === "audio") AE.redraw?.();
   updateMenubar();
   requestAnimationFrame(frame);
 }
@@ -2285,6 +2416,432 @@ function wireSetup() {
   $("#eAsio").onclick = () => engRequest({ cmd: "asioPanel" }, 600000).then((r) => { ENG.dev = r; engSetupFill(); }).catch(() => {});
   $("#eScan").onclick = () => engScan(false);
   $("#eRescan").onclick = () => engScan(true);
+}
+
+/* ---------------------------------------------------------------- audio region tools (fades, mute, normalize, reverse, join, crossfade, nudge) */
+function newBuffer(chs, sr, name) {
+  ensureCtx();
+  const b = ctx.createBuffer(chs.length, Math.max(1, chs[0].length), sr);
+  chs.forEach((d, i) => b.copyToChannel(d, i));
+  const id = uid(); buffers.set(id, { buf: b, name: name || "Edit" }); persistAudio(id);
+  return id;
+}
+/* the samples a plain audio region actually plays */
+function regionSamples(r) {
+  const B = buffers.get(r.audioId); if (!B) return null;
+  const sr = B.buf.sampleRate, a = Math.max(0, Math.round((r.offset || 0) * sr)), n = Math.max(1, Math.min(B.buf.length - a, Math.round((secAt(r.start + r.len) - secAt(r.start)) * sr)));
+  const chs = []; for (let c = 0; c < B.buf.numberOfChannels; c++) chs.push(B.buf.getChannelData(c).slice(a, a + n));
+  return { chs, sr };
+}
+const audioSel = () => selected().filter(({ t }) => t.kind === "audio");
+function needAudioSel() { const s = audioSel(); if (!s.length) toast("เลือก region เสียง (Audio) ก่อน"); return s; }
+function toggleMuteRegions() {
+  const s = selected(); if (!s.length) { toast("เลือก region ก่อน"); return; }
+  mark(); const to = !s.every(({ r }) => r.mute); for (const { r } of s) r.mute = to;
+  render(); autosave(); toast(to ? "ปิดเสียง region (Mute)" : "เปิดเสียง region");
+}
+function setFades(fi, fo) {
+  const s = needAudioSel(); if (!s.length) return;
+  mark(); for (const { r } of s) { const D = secAt(r.start + r.len) - secAt(r.start); if (fi != null) r.fadeIn = Math.min(fi, D / 2); if (fo != null) r.fadeOut = Math.min(fo, D / 2); }
+  render(); autosave();
+}
+function normalizeRegions() {
+  const s = needAudioSel(); if (!s.length) return;
+  mark(); let n = 0;
+  for (const { r } of s) {
+    let pk = 0;
+    for (const c of expandRegion({ ...r, mute: false, gain: 1 })) {
+      const B = buffers.get(c.audioId); if (!B) continue;
+      const sr = B.buf.sampleRate, a = Math.round(c.offset * sr), e = Math.min(B.buf.length, a + Math.round((secAt(c.start + c.len) - secAt(c.start)) * sr));
+      for (let ch = 0; ch < B.buf.numberOfChannels; ch++) { const d = B.buf.getChannelData(ch); for (let i = Math.max(0, a); i < e; i++) { const v = Math.abs(d[i]); if (v > pk) pk = v; } }
+    }
+    if (pk > 1e-5) { r.gain = +(0.891 / pk).toFixed(4); n++; }
+  }
+  render(); autosave(); toast(`Normalize ${n} region (ดังสุด -1 dB)`);
+}
+function reverseRegions() {
+  const s = needAudioSel().filter(({ r }) => !r.takes); if (!s.length) { toast("Reverse ใช้กับ region เสียงธรรมดา (ไม่ใช่ Take Folder)"); return; }
+  mark();
+  for (const { r } of s) {
+    const x = regionSamples(r); if (!x) continue;
+    x.chs.forEach((d) => d.reverse());
+    r.audioId = newBuffer(x.chs, x.sr, (r.name || "Audio") + " rev"); r.offset = 0; r.name = (r.name || "Audio") + " (Rev)";
+    [r.fadeIn, r.fadeOut] = [r.fadeOut || 0, r.fadeIn || 0];
+  }
+  render(); autosave(); toast("กลับหัวเสียง (Reverse) แล้ว");
+}
+function crossfadeSelected(sec = 0.05) {
+  const s = needAudioSel().sort((a, b) => a.r.start - b.r.start); let n = 0;
+  if (s.length < 2) { toast("เลือก 2 region เสียงที่อยู่ติดกันบนแทร็กเดียวกัน (Shift+คลิก)"); return; }
+  mark();
+  for (let i = 0; i + 1 < s.length; i++) {
+    const A = s[i], Bx = s[i + 1]; if (A.t !== Bx.t || A.r.takes || Bx.r.takes) continue;
+    const a = A.r, b = Bx.r, edge = a.start + a.len; if (Math.abs(edge - b.start) > 0.26) continue;
+    const BA = buffers.get(a.audioId), room = BA ? BA.buf.duration - ((a.offset || 0) + secAt(edge) - secAt(a.start)) : 0;
+    const half = Math.max(0, Math.min(sec / 2, room, b.offset || 0));
+    const hb = beatsFor(edge, half);
+    a.len = edge + hb - a.start; b.start = edge - hb; b.len += hb; b.offset = (b.offset || 0) - half;
+    a.fadeOut = b.fadeIn = Math.max(half * 2, 0.01); n++;
+  }
+  render(); autosave(); toast(n ? `Crossfade ${n} จุด` : "ไม่พบ region ที่อยู่ติดกัน");
+}
+async function joinRegions() {
+  const s = selected(); if (s.length < 2) { toast("เลือกอย่างน้อย 2 region บนแทร็กเดียวกัน"); return; }
+  const t = s[0].t; if (s.some((x) => x.t !== t)) { toast("Join ได้เฉพาะ region ในแทร็กเดียวกัน"); return; }
+  mark();
+  const lo = Math.min(...s.map((x) => x.r.start)), hi = Math.max(...s.map((x) => rEnd(x.r)));
+  let nr;
+  if (t.kind !== "audio") {
+    const notes = []; for (const { r } of s) { const tmp = { ...r }; bakeLoops(tmp); for (const n of tmp.notes) if (n.s >= 0 && n.s < tmp.len) notes.push({ ...n, s: n.s + r.start - lo }); }
+    nr = { id: uid(), name: s[0].r.name, start: lo, len: hi - lo, loops: 1, notes };
+  } else {
+    // render the clips into one new audio file
+    const clips = s.flatMap(({ r }) => regionClips(r)), first = buffers.get(clips[0]?.audioId); if (!first) return;
+    const sr = first.buf.sampleRate, n = Math.ceil((secAt(hi) - secAt(lo)) * sr), oc = new OfflineAudioContext(2, Math.max(1, n), sr);
+    for (const c of clips) playClip({ c: oc }, c, secAt(c.start) - secAt(lo), 0, oc.destination);
+    const out = await oc.startRendering();
+    nr = { id: uid(), name: s[0].r.name + " (Join)", start: lo, len: hi - lo, loops: 1, audioId: newBuffer([out.getChannelData(0), out.getChannelData(1)], sr, "Join"), offset: 0 };
+  }
+  t.regions = t.regions.filter((r) => !s.some((x) => x.r === r)); t.regions.push(nr);
+  ui.sel = new Set([nr.id]); ui.regionId = nr.id; render(); autosave(); toast(`รวม ${s.length} region เป็นอันเดียวแล้ว`);
+}
+function nudgeRegions(dir, big) {
+  const s = selected(); if (!s.length) return;
+  mark(); const d = dir * (big ? barAt(T.cursor).len : 0.25);
+  for (const { r } of s) r.start = Math.max(0, r.start + d);
+  render(); autosave();
+}
+function flattenTakes(r, t) {
+  if (!r.takes) return;
+  mark();
+  const parts = expandRegion({ ...r, mute: false }).map((c, i) => ({ id: uid(), name: `${r.name} ${i + 1}`, start: c.start, len: c.len, loops: 1, audioId: c.audioId, offset: c.offset, gain: r.gain ?? 1, fadeIn: c.fadeIn, fadeOut: c.fadeOut }));
+  t.regions = t.regions.filter((x) => x !== r).concat(parts);
+  ui.sel = new Set(parts.map((x) => x.id)); ui.regionId = parts[0]?.id || null; render(); autosave(); toast("Flatten: แปลง Take Folder เป็น region ธรรมดาแล้ว");
+}
+function regionMenu(e, t, r) {
+  e.preventDefault(); e.stopPropagation(); closeMenu();
+  if (!ui.sel.has(r.id)) lightSelect(t.id, r.id);
+  const item = (label, fn, key) => h("button", { role: "menuitem", onclick: () => { closeMenu(); fn(); } }, label, key ? h("kbd", {}, key) : null);
+  const audio = t.kind === "audio";
+  menuEl = h("div", { class: "menu-pop", role: "menu", style: "min-width:240px" },
+    h("div", { class: "mlabel" }, r.name + (r.takes ? ` · Take Folder (${r.takes.length})` : "")),
+    item(r.mute ? "เปิดเสียง (Unmute)" : "ปิดเสียง (Mute)", toggleMuteRegions, "Ctrl+M"),
+    item("ตัดที่หัวเล่น (Split)", splitAtPlayhead, "Ctrl+T"),
+    item("รวมเป็นอันเดียว (Join)", joinRegions, "Ctrl+J"),
+    item("ทำซ้ำ (Duplicate)", duplicateRegions, "Ctrl+D"),
+    audio ? h("hr") : null,
+    audio ? item("เปิดใน Audio Editor", () => openPane("audio"), "") : null,
+    audio ? item("Fade In / Out สั้น (10 ms)", () => setFades(0.01, 0.01)) : null,
+    audio ? item("Fade In 1 วินาที", () => setFades(1, null)) : null,
+    audio ? item("Fade Out 2 วินาที", () => setFades(null, 2)) : null,
+    audio ? item("ลบ Fade", () => setFades(0, 0)) : null,
+    audio ? item("Crossfade กับ region ถัดไป (เลือก 2 อัน)", () => crossfadeSelected(0.05)) : null,
+    audio ? h("hr") : null,
+    audio ? item("Normalize (ดังสุด -1 dB)", normalizeRegions) : null,
+    audio ? item("Reverse (กลับหัวเสียง)", reverseRegions) : null,
+    audio ? item("Strip Silence (ตัดช่วงเงียบ)…", openStripSilence) : null,
+    audio ? item("Flex Time (ยืด/หดเวลา)…", () => openFlex("time")) : null,
+    audio ? item("Flex Pitch (เปลี่ยนคีย์ / จูนเสียง)…", () => openFlex("pitch")) : null,
+    audio && r.takes ? item("Flatten Take Folder", () => flattenTakes(r, t)) : null,
+    h("hr"),
+    item("ลบ", deleteRegions, "Del"));
+  document.body.append(menuEl);
+  const mh = menuEl.offsetHeight;
+  menuEl.style.left = clamp(e.clientX, 8, window.innerWidth - 250) + "px"; menuEl.style.top = clamp(e.clientY, 8, window.innerHeight - mh - 8) + "px";
+}
+
+/* ---------------------------------------------------------------- Audio Editor (bottom pane) */
+const AE = { px: 90, sel: null, laneH: 64, takeH: 46 };
+function aeRegion() { const f = ui.regionId && findRegion(ui.regionId); return f && f.t.kind === "audio" ? f : null; }
+function renderAudioEd() {
+  const box = $("#ae"); if (!box || ui.tab !== "audio") return;
+  const f = aeRegion();
+  if (!f) { box.replaceChildren(h("p", { class: "empty-hint" }, "เลือก region เสียง (ดับเบิลคลิก region ในแทร็ก Audio) เพื่อแก้ไขที่นี่")); return; }
+  const { t, r } = f, W = Math.max(200, Math.round(r.len * AE.px)), takes = r.takes || null;
+  const rows = takes ? 1 + takes.length : 1, H = AE.laneH + (takes ? takes.length * AE.takeH : 0) + 18;
+  const cv = h("canvas", { width: W, height: H, style: `width:${W}px;height:${H}px;display:block;touch-action:none;cursor:text` });
+  const names = h("div", { class: "ae-names" }, h("div", { style: `height:18px` }), h("div", { style: `height:${AE.laneH}px`, class: "ae-name" }, takes ? "Comp" : r.name),
+    ...(takes ? takes.map((tk, i) => h("div", { class: "ae-name take", style: `height:${AE.takeH}px`, title: "คลิก = ใช้ take นี้ทั้งหมด", onclick: () => { mark(); r.comp = [{ a: 0, b: r.len, take: i }]; render(); autosave(); } }, tk.name || "Take " + (i + 1))) : []));
+  const wrap = h("div", { class: "ae-wrap" }, names, h("div", { class: "ae-scroll" }, cv));
+  const info = h("div", { class: "ae-info" },
+    h("span", {}, `${t.name} · ${r.name}`), h("span", {}, `${fmtTime(secAt(r.start + r.len) - secAt(r.start))} วินาที`),
+    h("span", {}, `Gain ${(20 * Math.log10(r.gain ?? 1)).toFixed(1)} dB`), r.fadeIn ? h("span", {}, `Fade In ${(r.fadeIn * 1000).toFixed(0)} ms`) : null, r.fadeOut ? h("span", {}, `Fade Out ${(r.fadeOut * 1000).toFixed(0)} ms`) : null,
+    r.flex ? h("span", {}, `Flex: ${flexLabel(r.flex)}`) : null, takes ? h("span", {}, "ลากบนแถว Take เพื่อเลือกท่อนที่ดีที่สุด (Swipe Comping)") : h("span", {}, "ลากเพื่อเลือกช่วง"));
+  box.replaceChildren(info, wrap);
+  const g = cv.getContext("2d");
+  const draw = () => {
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = "#1a1b1e"; g.fillRect(0, 0, W, H);
+    // ruler (beats relative to region start, labels in bars of the song)
+    g.fillStyle = "#2c2d31"; g.fillRect(0, 0, W, 18); g.fillStyle = "#9aa0a8"; g.font = "10px monospace";
+    for (let b = Math.ceil(r.start); b <= r.start + r.len; b++) { const x = (b - r.start) * AE.px; g.fillRect(x, isBarStart(b) ? 6 : 12, 1, isBarStart(b) ? 12 : 6); if (isBarStart(b)) g.fillText(String(barAt(b).bar + 1), x + 3, 12); }
+    const lane = (y, h2, clips, color, alpha) => {
+      g.fillStyle = "rgba(255,255,255,.03)"; g.fillRect(0, y, W, h2);
+      for (const c of clips) {
+        const B = buffers.get(c.audioId); if (!B) continue;
+        const pk = peaksOf(B), pps = pk.length / B.buf.duration, xa = (c.start - r.start) * AE.px, xb = (c.start + c.len - r.start) * AE.px, cs = secAt(c.start);
+        g.fillStyle = rgba(color, 0.22 * alpha); g.fillRect(xa, y + 1, xb - xa, h2 - 2);
+        g.fillStyle = `rgba(255,255,255,${0.85 * alpha})`;
+        for (let x = Math.max(0, Math.floor(xa)); x < xb && x < W; x++) { const sec = c.offset + secAt(r.start + x / AE.px) - cs, i = Math.floor(sec * pps); if (i < 0 || i >= pk.length) continue; const a = Math.min(1, pk[i] * (r.gain ?? 1)) * (h2 / 2 - 2); g.fillRect(x, y + h2 / 2 - a, 1, Math.max(1, 2 * a)); }
+      }
+    };
+    lane(18, AE.laneH, expandRegion({ ...r, mute: false }), t.color, 1);
+    if (r.flex?.curve) {   // Flex Pitch: detected (grey) and corrected (orange) pitch
+      const pc = r.flex.curve, lo = Math.min(...pc.filter((v) => v > 0).map((v) => v)) - 2, hi = Math.max(...pc.map((v) => v)) + 2, D = secAt(r.start + r.len) - secAt(r.start);
+      const yOf = (m) => 18 + AE.laneH - 4 - ((m - lo) / Math.max(1, hi - lo)) * (AE.laneH - 8);
+      for (const [arr, col] of [[pc, "rgba(200,200,200,.6)"], [r.flex.target || [], "#ffb15c"]]) { g.strokeStyle = col; g.beginPath(); let pen = false; arr.forEach((m, i) => { if (!(m > 0)) { pen = false; return; } const x = beatsFor(r.start, (i / arr.length) * D) * AE.px, y = yOf(m); pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; }); g.stroke(); }
+    }
+    if (takes) takes.forEach((tk, i) => {
+      const y = 18 + AE.laneH + i * AE.takeH, c = [{ audioId: tk.audioId, start: r.start + tk.rs, len: tk.len, offset: tk.offset || 0 }];
+      lane(y, AE.takeH, c, "#8c8f96", 0.55);
+      g.fillStyle = rgba(t.color, 0.45);
+      for (const seg of r.comp || []) if (seg.take === i) g.fillRect(seg.a * AE.px, y + 1, (seg.b - seg.a) * AE.px, AE.takeH - 2);
+      lane(y, AE.takeH, (r.comp || []).filter((s2) => s2.take === i).map((s2) => ({ ...c[0], start: r.start + Math.max(s2.a, tk.rs), len: Math.min(s2.b, tk.rs + tk.len) - Math.max(s2.a, tk.rs), offset: (tk.offset || 0) + secAt(r.start + Math.max(s2.a, tk.rs)) - secAt(r.start + tk.rs) })).filter((x) => x.len > 0), "#ffffff", 1);
+      g.fillStyle = "rgba(0,0,0,.5)"; g.fillRect(0, y, W, 1);
+    });
+    if (AE.sel && AE.sel.id === r.id) { const a = Math.min(AE.sel.a, AE.sel.b), b = Math.max(AE.sel.a, AE.sel.b); g.fillStyle = "rgba(90,167,255,.28)"; g.fillRect(a * AE.px, 18, (b - a) * AE.px, H - 18); }
+    const ph = (currentBeatSafe() - r.start) * AE.px; if (ph >= 0 && ph <= W) { g.fillStyle = "#fff"; g.fillRect(ph, 0, 1, H); }
+  };
+  draw(); AE.redraw = draw;
+  cv.addEventListener("pointerdown", (e) => {
+    cv.setPointerCapture(e.pointerId);
+    const rel = (ev) => clamp(ev.offsetX / AE.px, 0, r.len), y = e.offsetY, lane = takes && y > 18 + AE.laneH ? Math.floor((y - 18 - AE.laneH) / AE.takeH) : -1, a0 = rel(e);
+    if (lane >= 0 && lane < takes.length) {   // swipe comping on a take lane
+      mark();
+      const apply = (b) => { const a = Math.min(a0, b), z = Math.max(a0, b); r.comp = compSet(r.comp || [], a, z, lane); draw(); };
+      const mv = (ev) => apply(rel(ev)); const up = () => { cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up); render(); autosave(); };
+      cv.addEventListener("pointermove", mv); cv.addEventListener("pointerup", up); apply(a0 + 0.25); return;
+    }
+    AE.sel = { id: r.id, a: a0, b: a0 };
+    const mv = (ev) => { AE.sel.b = rel(ev); draw(); };
+    const up = () => { cv.removeEventListener("pointermove", mv); cv.removeEventListener("pointerup", up); if (Math.abs(AE.sel.b - AE.sel.a) < 0.02) { AE.sel = null; seek(r.start + a0); } draw(); };
+    cv.addEventListener("pointermove", mv); cv.addEventListener("pointerup", up);
+  });
+}
+/* comp list: give [a, b) to take `ti`, keeping the rest */
+function compSet(comp, a, b, ti) {
+  const out = [];
+  for (const s of comp) { if (s.b <= a || s.a >= b) out.push({ ...s }); else { if (s.a < a) out.push({ ...s, b: a }); if (s.b > b) out.push({ ...s, a: b }); } }
+  out.push({ a, b, take: ti });
+  out.sort((x, y) => x.a - y.a);
+  const merged = []; for (const s of out) { const l = merged[merged.length - 1]; if (l && l.take === s.take && Math.abs(l.b - s.a) < 1e-9) l.b = s.b; else merged.push(s); }
+  return merged;
+}
+function aeSelection() { const f = aeRegion(); if (!f || !AE.sel || AE.sel.id !== f.r.id) { toast("ลากเลือกช่วงใน Audio Editor ก่อน"); return null; } const a = Math.min(AE.sel.a, AE.sel.b), b = Math.max(AE.sel.a, AE.sel.b); return b - a > 0.01 ? { ...f, a, b } : null; }
+function aeCut(keep) {
+  const s = aeSelection(); if (!s) return;
+  mark();
+  const { t, r } = s, A = r.start + s.a, Bb = r.start + s.b;
+  const ids = cutRegions([{ t, r }], A); const mid = t.regions.find((x) => ids.includes(x.id)) || r;
+  const ids2 = cutRegions([{ t, r: mid }], Bb); const right = t.regions.find((x) => ids2.includes(x.id));
+  if (keep) { const drop = new Set([r !== mid ? r : null, right].filter(Boolean)); t.regions = t.regions.filter((x) => !drop.has(x)); ui.regionId = mid.id; ui.sel = new Set([mid.id]); }
+  else { t.regions = t.regions.filter((x) => x !== mid); ui.regionId = (right || r).id; ui.sel = new Set([ui.regionId]); }
+  AE.sel = null; render(); autosave(); toast(keep ? "เก็บเฉพาะช่วงที่เลือกแล้ว" : "ลบช่วงที่เลือกแล้ว");
+}
+function aeFade(which) {
+  const s = aeSelection(); if (!s) return;
+  mark(); const { r } = s, sec = secAt(r.start + s.b) - secAt(r.start + s.a);
+  if (which === "in") r.fadeIn = secAt(r.start + s.b) - secAt(r.start); else r.fadeOut = secAt(r.start + r.len) - secAt(r.start + s.a);
+  render(); autosave(); toast(`Fade ${which === "in" ? "In" : "Out"} ${(sec * 1000).toFixed(0)} ms`);
+}
+
+/* ---------------------------------------------------------------- Strip Silence */
+function stripSegments(r, thrDb, minSilence, pre, post) {
+  const x = regionSamples(r); if (!x) return [];
+  const { chs, sr } = x, n = chs[0].length, win = Math.max(1, Math.round(sr * 0.01)), thr = 10 ** (thrDb / 20), loud = [];
+  for (let i = 0; i < n; i += win) { let s = 0, c = 0; for (const d of chs) for (let j = i, e = Math.min(n, i + win); j < e; j++) { s += d[j] * d[j]; c++; } loud.push(Math.sqrt(s / Math.max(1, c)) * (r.gain ?? 1) >= thr); }
+  const segs = []; let st = -1;
+  loud.forEach((v, i) => { if (v && st < 0) st = i; if (!v && st >= 0) { segs.push([st * 0.01, i * 0.01]); st = -1; } });
+  if (st >= 0) segs.push([st * 0.01, loud.length * 0.01]);
+  const merged = []; for (const s of segs) { const l = merged[merged.length - 1]; if (l && s[0] - l[1] < minSilence) l[1] = s[1]; else merged.push([...s]); }
+  const dur = n / sr;
+  return merged.map(([a, b]) => [Math.max(0, a - pre), Math.min(dur, b + post)]).filter(([a, b]) => b - a > 0.02);
+}
+function openStripSilence() {
+  const f = aeRegion() || audioSel()[0]; if (!f) { toast("เลือก region เสียงก่อน"); return; }
+  if (f.r.takes) { toast("Flatten Take Folder ก่อน แล้วค่อย Strip Silence"); return; }
+  ui.regionId = f.r.id; $("#dlgStrip").showModal(); stripPreview();
+}
+function stripOpts() { return { thr: +$("#ssThr").value, min: +$("#ssMin").value / 1000, pre: +$("#ssPre").value / 1000, post: +$("#ssPost").value / 1000 }; }
+function stripPreview() {
+  const f = aeRegion() || audioSel()[0]; if (!f) return;
+  const o = stripOpts(), segs = stripSegments(f.r, o.thr, o.min, o.pre, o.post);
+  $("#ssThrV").textContent = o.thr + " dB"; $("#ssMinV").textContent = Math.round(o.min * 1000) + " ms"; $("#ssPreV").textContent = Math.round(o.pre * 1000) + " ms"; $("#ssPostV").textContent = Math.round(o.post * 1000) + " ms";
+  $("#ssCount").textContent = `จะได้ ${segs.length} ช่วงที่มีเสียง`;
+  return segs;
+}
+function applyStripSilence() {
+  const f = aeRegion() || audioSel()[0]; if (!f) return;
+  const { t, r } = f, o = stripOpts(), segs = stripSegments(r, o.thr, o.min, o.pre, o.post);
+  if (!segs.length) { toast("ไม่พบช่วงที่มีเสียงตามค่าที่ตั้ง ลองลด Threshold"); return; }
+  mark();
+  const s0 = secAt(r.start), parts = segs.map(([a, b], i) => { const st = beatAtSec(s0 + a); return { id: uid(), name: `${r.name} ${i + 1}`, start: st, len: beatAtSec(s0 + b) - st, loops: 1, audioId: r.audioId, offset: (r.offset || 0) + a, gain: r.gain ?? 1, fadeIn: 0.005, fadeOut: 0.01 }; });
+  t.regions = t.regions.filter((x) => x !== r).concat(parts);
+  ui.sel = new Set(parts.map((p) => p.id)); ui.regionId = parts[0].id; render(); autosave();
+  toast(`Strip Silence: แบ่งเป็น ${parts.length} ช่วง`);
+}
+
+/* ---------------------------------------------------------------- take folders + punch in/out */
+const overlaps = (x, a, b) => x.start < b - 1e-9 && x.start + x.len * (x.loops || 1) > a + 1e-9;
+/* a new recording: crop to the punch range, then stack it as a take on any region it overlaps */
+function addTake(t, R) {
+  if (P.punch?.on) {
+    const a = Math.max(R.start, P.punch.start), b = Math.min(R.start + R.len, P.punch.end);
+    if (b - a <= 1e-6) return null;
+    R.offset = (R.offset || 0) + secAt(a) - secAt(R.start); R.start = a; R.len = b - a;
+  }
+  const X = t.regions.find((x) => !x.mute && (x.loops || 1) === 1 && (x.audioId || x.takes) && overlaps(x, R.start, R.start + R.len));
+  if (!X) { t.regions.push(R); return R; }
+  if (!X.takes) {
+    X.takes = [{ id: uid(), audioId: X.audioId, offset: X.offset || 0, rs: 0, len: X.len, name: "Take 1" }];
+    X.comp = [{ a: 0, b: X.len, take: 0 }];
+    delete X.audioId; X.offset = 0; X.name = "Take Folder";
+  }
+  const oldEnd = X.start + X.len, ns = Math.min(X.start, R.start), shift = X.start - ns;
+  if (shift > 0) { for (const tk of X.takes) tk.rs += shift; for (const c of X.comp) { c.a += shift; c.b += shift; } }
+  X.start = ns; X.len = Math.max(oldEnd, R.start + R.len) - ns;
+  const rs = R.start - ns;
+  X.takes.push({ id: uid(), audioId: R.audioId, offset: R.offset || 0, rs, len: R.len, name: "Take " + (X.takes.length + 1) });
+  X.comp = compSet(X.comp, rs, rs + R.len, X.takes.length - 1);
+  return X;
+}
+function togglePunch(force) {
+  P.punch = P.punch || { on: false, start: 0, end: 0 };
+  P.punch.on = force ?? !P.punch.on;
+  if (P.punch.on && P.punch.end - P.punch.start < 0.25) { if (P.loop.end > P.loop.start) { P.punch.start = P.loop.start; P.punch.end = P.loop.end; } else { P.punch.start = barFloor(T.cursor); P.punch.end = barsLater(P.punch.start, 4); } }
+  updateLoopBand(); autosave();
+  if (P.punch.on) toast(`Punch In/Out: อัดเฉพาะบาร์ ${barAt(P.punch.start).bar + 1}–${barAt(P.punch.end - 1e-6).bar + 1} (แถบสีแดง) · Shift+ลากบนไม้บรรทัดเพื่อเปลี่ยนช่วง`, 4500);
+}
+
+/* ---------------------------------------------------------------- Flex Time / Flex Pitch (offline DSP) */
+/* WSOLA time-stretch with a ratio that may change over time.
+   ratioAt(inputSample) = local output/input length. Returns { y: channels, frames: [[outPos, inPos], ...] } */
+function wsola(x, sr, ratioAt) {
+  const N = 2 ** Math.round(Math.log2(sr * 0.046)), Hs = N / 2, tol = Math.round(sr * 0.008), len = x[0].length;
+  const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N);
+  const mono = new Float32Array(len); for (const c of x) for (let i = 0; i < len; i++) mono[i] += c[i] / x.length;
+  let est = 0; for (let a = 0; a < len; ) { est += Hs; a += Hs / Math.max(0.05, ratioAt(a)); }
+  const outLen = est + N + Hs, y = x.map(() => new Float32Array(outLen)), wsum = new Float32Array(outLen), frames = [];
+  let a = 0, prev = -1, k = 0;
+  while (a < len && k * Hs < outLen - N) {
+    let best = Math.round(a);
+    if (prev >= 0) {   // find the shift that best continues the previous frame
+      const nat = prev + Hs; let bestC = -Infinity;
+      for (let d = -tol; d <= tol; d += 2) {
+        const p = Math.round(a) + d; if (p < 0 || p + N > len) continue;
+        let c = 0; for (let i = 0; i < N; i += 4) c += mono[p + i] * (nat + i < len ? mono[nat + i] : 0);
+        if (c > bestC) { bestC = c; best = p; }
+      }
+    }
+    best = Math.max(0, Math.min(len - 1, best));
+    const o = k * Hs;
+    for (let ch = 0; ch < x.length; ch++) { const src = x[ch], dst = y[ch]; for (let i = 0; i < N && best + i < len; i++) dst[o + i] += src[best + i] * win[i]; }
+    for (let i = 0; i < N; i++) wsum[o + i] += win[i];
+    frames.push([o, best]); prev = best; k++;
+    a += Hs / Math.max(0.05, ratioAt(a));
+  }
+  const used = Math.min(outLen, (k - 1) * Hs + N);
+  for (const d of y) for (let i = 0; i < used; i++) if (wsum[i] > 1e-3) d[i] /= wsum[i];
+  return { y: y.map((d) => d.subarray(0, used)), frames, Hs };
+}
+/* YIN pitch detection on a mono signal; returns MIDI note numbers per hop (0 = unvoiced) */
+function detectPitch(x, sr) {
+  const mono = new Float32Array(x[0].length); for (const c of x) for (let i = 0; i < mono.length; i++) mono[i] += c[i] / x.length;
+  const dec = Math.max(1, Math.round(sr / 11025)), fs = sr / dec, n = Math.floor(mono.length / dec), d = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let s = 0; for (let j = 0; j < dec; j++) s += mono[i * dec + j]; d[i] = s / dec; }
+  const W = 512, hop = 128, tmin = Math.floor(fs / 1100), tmax = Math.ceil(fs / 65), out = [], df = new Float32Array(tmax + 1);
+  let peak = 0; for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(d[i]));
+  for (let s = 0; s + W + tmax < n; s += hop) {
+    let rms = 0; for (let i = 0; i < W; i++) rms += d[s + i] * d[s + i]; rms = Math.sqrt(rms / W);
+    if (rms < peak * 0.03) { out.push(0); continue; }
+    let run = 0; df[0] = 1;
+    for (let t = 1; t <= tmax; t++) { let v = 0; for (let i = 0; i < W; i++) { const e = d[s + i] - d[s + i + t]; v += e * e; } run += v; df[t] = run > 0 ? (v * t) / run : 1; }
+    let tau = -1; for (let t = tmin; t <= tmax; t++) if (df[t] < 0.15) { while (t + 1 <= tmax && df[t + 1] < df[t]) t++; tau = t; break; }
+    if (tau < 0) { out.push(0); continue; }
+    const a0 = df[tau - 1] ?? df[tau], a2 = df[tau + 1] ?? df[tau], den = a0 + a2 - 2 * df[tau], ft = den ? tau + (a0 - a2) / (2 * den) : tau;
+    out.push(69 + 12 * Math.log2(fs / ft / 440));
+  }
+  // 5-point median to remove octave blips
+  return out.map((v, i) => { if (!v) return 0; const w = out.slice(Math.max(0, i - 2), i + 3).filter((z) => z > 0).sort((p, q) => p - q); return w[Math.floor(w.length / 2)] || v; });
+}
+function keyScale() {
+  const m = /^([A-G][#b]?)\s*(maj|min)?/i.exec(P.key || "C maj") || [], root = Math.max(0, NOTE_NAMES.indexOf(m[1]) >= 0 ? NOTE_NAMES.indexOf(m[1]) : ["C", "Db", "D", "D#", "E", "F", "Gb", "G", "G#", "A", "A#", "B"].indexOf(m[1]));
+  return { root, steps: /min/i.test(m[2] || "") ? SCALES.minor : SCALES.major };
+}
+function snapToScale(midi, sc) { let best = Math.round(midi), bd = Infinity; for (let n = Math.floor(midi) - 2; n <= Math.ceil(midi) + 2; n++) if (sc.steps.includes((((n - sc.root) % 12) + 12) % 12) && Math.abs(n - midi) < bd) { bd = Math.abs(n - midi); best = n; } return best; }
+/* time-varying pitch shift: stretch by f(t) with WSOLA, then resample by f(t) back to the original length */
+function pitchShift(x, sr, semisAt) {
+  const fAt = (i) => 2 ** (semisAt(i) / 12);
+  const { y, frames } = wsola(x, sr, fAt);
+  const inAt = (q) => { let lo = 0, hi = frames.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (frames[m][0] <= q) lo = m; else hi = m; } const [o0, i0] = frames[lo], [o1, i1] = frames[hi] || frames[lo]; return o1 > o0 ? i0 + ((q - o0) / (o1 - o0)) * (i1 - i0) : i0; };
+  const len = x[0].length, out = x.map(() => new Float32Array(len));
+  let q = 0;
+  for (let m = 0; m < len; m++) {
+    const i = Math.floor(q), fr = q - i; if (i + 1 >= y[0].length) break;
+    for (let c = 0; c < y.length; c++) out[c][m] = y[c][i] + (y[c][i + 1] - y[c][i]) * fr;
+    q += fAt(inAt(q));
+  }
+  return out;
+}
+function flexLabel(f) { const p = []; if (Math.abs((f.ratio || 1) - 1) > 1e-3) p.push(`Time ${Math.round(f.ratio * 100)}%`); if (f.semis || f.cents) p.push(`Pitch ${f.semis > 0 ? "+" : ""}${f.semis || 0} st ${f.cents ? (f.cents > 0 ? "+" : "") + f.cents + "c" : ""}`); if (f.correct) p.push(`Tune ${Math.round(f.correct * 100)}%`); return p.join(" · ") || "-"; }
+/* render the region's audio again from its original source with the current flex settings */
+async function renderFlex(r) {
+  const f = r.flex, B = buffers.get(f.src.audioId); if (!B) { toast("หาไฟล์ต้นฉบับไม่พบ"); return false; }
+  const sr = B.buf.sampleRate, a = Math.round(f.src.offset * sr), n = Math.min(B.buf.length - a, Math.round(f.src.dur * sr));
+  let x = []; for (let c = 0; c < Math.min(2, B.buf.numberOfChannels); c++) x.push(B.buf.getChannelData(c).slice(a, a + n));
+  toast("กำลังประมวลผล Flex…", 60000); await new Promise((res) => setTimeout(res, 30));
+  const hasPitch = (f.semis || 0) !== 0 || (f.cents || 0) !== 0 || (f.correct || 0) > 0;
+  if (hasPitch) {
+    const tr = (f.semis || 0) + (f.cents || 0) / 100;
+    let shiftOf = () => tr;
+    if (f.correct > 0) {
+      const curve = detectPitch(x, sr), hopS = (128 * Math.max(1, Math.round(sr / 11025))), sc = keyScale(), speed = Math.max(0.001, (f.speed ?? 40) / 1000), k = 1 - Math.exp(-(hopS / sr) / speed);
+      let cur = 0; const shifts = curve.map((m) => { if (!m) { cur *= 0.9; return cur; } const want = (snapToScale(m, sc) - m) * f.correct; cur += (want - cur) * k; return cur; });
+      f.curve = downsample(curve, 400); f.target = downsample(curve.map((m, i) => (m ? m + shifts[i] : 0)), 400);
+      shiftOf = (i) => tr + (shifts[Math.min(shifts.length - 1, Math.floor(i / hopS))] || 0);
+    } else { f.curve = null; f.target = null; }
+    x = pitchShift(x, sr, shiftOf);
+  }
+  if (Math.abs((f.ratio || 1) - 1) > 1e-3) x = wsola(x, sr, () => f.ratio).y;
+  r.audioId = newBuffer(x, sr, "Flex"); r.offset = 0;
+  r.len = beatsFor(r.start, x[0].length / sr);
+  return true;
+}
+function downsample(a, n) { if (a.length <= n) return a.map((v) => +v.toFixed(2)); const out = []; for (let i = 0; i < n; i++) out.push(+a[Math.floor((i * a.length) / n)].toFixed(2)); return out; }
+function flexSource(r) {
+  if (!r.flex) r.flex = { src: { audioId: r.audioId, offset: r.offset || 0, dur: secAt(r.start + r.len) - secAt(r.start), bpm: bpmAt(r.start) }, ratio: 1, semis: 0, cents: 0, correct: 0, speed: 40 };
+  return r.flex;
+}
+async function flexStretchTo(r) {
+  if (r.takes) { toast("Flatten Take Folder ก่อนใช้ Flex"); return; }
+  const f = flexSource(r), want = secAt(r.start + r.len) - secAt(r.start);
+  f.ratio = clamp(want / f.src.dur, 0.25, 4);
+  if (await renderFlex(r)) { render(); autosave(); toast(`Flex Time: ยืดเป็น ${Math.round(f.ratio * 100)}% (เสียงไม่เปลี่ยนคีย์)`); }
+}
+let flexTarget = null;
+function openFlex(mode) {
+  const f0 = aeRegion() || audioSel()[0]; if (!f0) { toast("เลือก region เสียงก่อน"); return; }
+  if (f0.r.takes) { toast("Flatten Take Folder ก่อนใช้ Flex"); return; }
+  flexTarget = f0; const f = f0.r.flex || { ratio: 1, semis: 0, cents: 0, correct: 0, speed: 40, src: { bpm: bpmAt(f0.r.start) } };
+  $("#fxTimeBox").hidden = mode !== "time"; $("#fxPitchBox").hidden = mode !== "pitch";
+  $("#flexTitle").textContent = mode === "time" ? "Flex Time" : "Flex Pitch";
+  $("#flRatio").value = Math.round((f.ratio || 1) * 100); $("#flSrcBpm").value = Math.round((f.src?.bpm || bpmAt(f0.r.start)) * 100) / 100;
+  $("#flSemis").value = f.semis || 0; $("#flCents").value = f.cents || 0; $("#flCorrect").value = Math.round((f.correct || 0) * 100); $("#flSpeed").value = f.speed ?? 40;
+  $("#flKey").textContent = "คีย์ของเพลง: " + (P.key || "C maj") + " (เปลี่ยนได้ที่ Chord Pad)";
+  flexOut(); $("#dlgFlex").showModal();
+}
+function flexOut() { $("#flRatioV").textContent = $("#flRatio").value + "%"; $("#flSemisV").textContent = $("#flSemis").value + " st"; $("#flCentsV").textContent = $("#flCents").value + " c"; $("#flCorrectV").textContent = $("#flCorrect").value + "%"; $("#flSpeedV").textContent = $("#flSpeed").value + " ms"; }
+async function applyFlex(reset) {
+  const fr = flexTarget; if (!fr) return; const { r } = fr;
+  mark();
+  if (reset) {
+    if (r.flex) { r.audioId = r.flex.src.audioId; r.offset = r.flex.src.offset; r.len = beatsFor(r.start, r.flex.src.dur); delete r.flex; }
+    render(); autosave(); toast("คืนเสียงต้นฉบับแล้ว"); return;
+  }
+  const f = flexSource(r), timeMode = !$("#fxTimeBox").hidden;
+  if (timeMode) f.ratio = clamp(+$("#flRatio").value / 100, 0.25, 4);
+  else { f.semis = clamp(Math.round(+$("#flSemis").value), -24, 24); f.cents = clamp(Math.round(+$("#flCents").value), -100, 100); f.correct = clamp(+$("#flCorrect").value / 100, 0, 1); f.speed = clamp(+$("#flSpeed").value, 0, 400); }
+  if (await renderFlex(r)) { render(); autosave(); toast("Flex: " + flexLabel(f), 4000); }
 }
 
 /* ---------------------------------------------------------------- arrangement markers (Intro / Verse / Chorus …) */
@@ -2709,6 +3266,7 @@ function boot() {
   document.addEventListener("contextmenu", (e) => { if (e.target.closest("#ruler")) { e.preventDefault(); openTempo(); } });
   $("#bPlay").onclick = togglePlay; $("#bStop").onclick = stop; $("#bHome").onclick = () => seek(0); $("#bRec").onclick = toggleRecord;
   $("#bUndo").onclick = undo; $("#bRedo").onclick = redo;
+  $("#bPunch").onclick = () => togglePunch();
   $("#bCycle").onclick = () => { P.loop.on = !P.loop.on; updateLoopBand(); autosave(); };
   $("#bMetro").onclick = () => { P.metro = !P.metro; $("#bMetro").classList.toggle("on", P.metro); autosave(); };
   $("#bCount").onclick = () => { P.countIn = !P.countIn; $("#bCount").classList.toggle("on", P.countIn); autosave(); toast(P.countIn ? "นับ 1 บาร์ก่อนอัด: เปิด" : "นับ 1 บาร์ก่อนอัด: ปิด", 1500); };
@@ -2727,7 +3285,18 @@ function boot() {
   $("#zOut").onclick = () => { ui.beatPx = clamp(ui.beatPx / 1.3, 8, 96); render(); };
   $("#prZoomIn").onclick = () => { ui.prBeatPx = clamp(ui.prBeatPx * 1.3, 16, 200); renderRoll(); };
   $("#prZoomOut").onclick = () => { ui.prBeatPx = clamp(ui.prBeatPx / 1.3, 16, 200); renderRoll(); };
-  $("#tabMixer").onclick = () => setTab("mixer"); $("#tabRoll").onclick = () => setTab("roll");
+  $("#tabMixer").onclick = () => setTab("mixer"); $("#tabRoll").onclick = () => setTab("roll"); $("#tabAudio").onclick = () => setTab("audio");
+  $("#aeDel").onclick = () => aeCut(false); $("#aeCrop").onclick = () => aeCut(true); $("#aeFin").onclick = () => aeFade("in"); $("#aeFout").onclick = () => aeFade("out");
+  $("#aeNorm").onclick = () => { const f = aeRegion(); if (f) { ui.sel = new Set([f.r.id]); normalizeRegions(); } };
+  $("#aeRev").onclick = () => { const f = aeRegion(); if (f) { ui.sel = new Set([f.r.id]); reverseRegions(); } };
+  $("#aeStrip").onclick = openStripSilence; $("#aeFlexT").onclick = () => openFlex("time"); $("#aeFlexP").onclick = () => openFlex("pitch");
+  $("#aeZoomIn").onclick = () => { AE.px = clamp(AE.px * 1.4, 10, 2000); renderAudioEd(); }; $("#aeZoomOut").onclick = () => { AE.px = clamp(AE.px / 1.4, 10, 2000); renderAudioEd(); };
+  for (const id of ["ssThr", "ssMin", "ssPre", "ssPost"]) $("#" + id).oninput = stripPreview;
+  for (const id of ["flRatio", "flSemis", "flCents", "flCorrect", "flSpeed"]) $("#" + id).oninput = flexOut;
+  $("#flFollow").onclick = () => { const r0 = flexTarget?.r; if (!r0) return; $("#flRatio").value = Math.round(((+$("#flSrcBpm").value || P.bpm) / bpmAt(r0.start)) * 100); if (r0.flex) r0.flex.src.bpm = +$("#flSrcBpm").value; flexOut(); };
+  $("#flReset").onclick = () => { $("#dlgFlex").close("reset"); applyFlex(true); };
+  $("#dlgFlex").addEventListener("close", () => { if ($("#dlgFlex").returnValue === "ok") applyFlex(false); });
+  $("#dlgStrip").addEventListener("close", () => { if ($("#dlgStrip").returnValue === "ok") applyStripSilence(); });
   $("#prGrid").onchange = () => renderRoll();
   $("#bChord").onclick = openChord; $("#bBeat").onclick = openBeat;
   $("#dlgChord").addEventListener("close", () => { if ($("#dlgChord").returnValue === "ok") createChords(); });
@@ -2766,6 +3335,9 @@ function boot() {
     if (mod && k === "x") { copyRegions(true); return; }
     if (mod && k === "v") { pasteRegions(); return; }
     if (mod && k === "d") { e.preventDefault(); duplicateRegions(); return; }
+    if (mod && k === "m") { e.preventDefault(); toggleMuteRegions(); return; }
+    if (mod && k === "j") { e.preventDefault(); joinRegions(); return; }
+    if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); nudgeRegions(e.key === "ArrowLeft" ? -1 : 1, e.shiftKey); return; }
     if (mod && k === "t") { e.preventDefault(); splitAtPlayhead(); return; }
     if (mod && k === "a") { e.preventDefault(); ui.sel = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.id))); ui.regionId = [...ui.sel].pop() || null; render(); return; }
     if (e.code === "Space") { e.preventDefault(); togglePlay(); return; }
@@ -2785,6 +3357,7 @@ function boot() {
     else if (k === "q" && !mod) quantizeSelected();
     else if (k === "x" && !mod) showPane("mixer");
     else if (k === "p" && !mod) showPane("roll");
+    else if (k === "e" && !mod) showPane("audio");
     else if (k === "i" && !mod) toggleInspector();
     else if (e.key === "Escape") { toggleFileMenu(false); closeMenubar(); }
   });

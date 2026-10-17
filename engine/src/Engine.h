@@ -32,7 +32,7 @@ struct PluginSlot
 };
 
 struct NoteEv { double on, off; int pitch; int vel; };
-struct ClipEv { double start, end; std::shared_ptr<Media> media; double offsetSec; float gain; };
+struct ClipEv { double start, end; std::shared_ptr<Media> media; double offsetSec; float gain; double fadeIn = 0, fadeOut = 0; };
 
 struct Insert
 {

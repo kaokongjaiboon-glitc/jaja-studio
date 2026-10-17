@@ -203,9 +203,25 @@ int main()
         const int oa = firstOnset (fa, sr), ob = firstOnset (fb, sr);
         std::printf ("      onset plain track %d, track with 1000-sample plugin %d (expected %d)\n", oa, ob, (int) (2.0 * sr));
         CHECK (oa > 0 && std::abs (oa - ob) <= 2, "PDC lines up the delayed track with the plain one");
-        CHECK (std::abs (oa - (int) (2.0 * sr)) <= 8, "stem starts exactly at beat 4 (2 s)");
+        CHECK (oa - (int) (2.0 * sr) >= 0 && oa - (int) (2.0 * sr) <= 200, "stem starts at beat 4 (2 s, within the 3 ms edge fade)");
         auto fd = dir.getChildFile ("stem-dr.wav");
         CHECK (e.bounce (fd, 8.0, 0.5, nullptr, err, "dr") && firstOnset (fd, sr) >= 0 && firstOnset (fd, sr) < 100, "drum stem starts at 0");
+    }
+
+    // ---- clip fades: 0.5 s fade-in -> quiet at 0.1 s, full at 0.6 s
+    {
+        e.pluginFactory = nullptr;
+        auto pj = juce::JSON::parse (projectJson().replace ("\"audioId\":\"tone\",\"offset\":0,\"gain\":1", "\"audioId\":\"tone\",\"offset\":0,\"gain\":1,\"fadeIn\":0.5,\"fadeOut\":0.2"));
+        e.setProject (pj);
+        auto f = dir.getChildFile ("fade.wav");
+        CHECK (e.bounce (f, 8.0, 0.0, nullptr, err, "au"), "bounce faded clip");
+        juce::AudioFormatManager fm; fm.registerBasicFormats();
+        std::unique_ptr<juce::AudioFormatReader> r (fm.createReaderFor (f));
+        juce::AudioBuffer<float> b (2, (int) r->lengthInSamples); r->read (&b, 0, b.getNumSamples(), 0, true, true);
+        const int s0 = (int) (2.0 * sr);
+        const float early = b.getMagnitude (0, s0 + (int) (0.08 * sr), 480), full = b.getMagnitude (0, s0 + (int) (0.6 * sr), 480), tail = b.getMagnitude (0, s0 + (int) (0.97 * sr), 480);
+        std::printf ("      fade levels: 0.1 s %.3f, 0.6 s %.3f, 0.98 s %.3f\n", early, full, tail);
+        CHECK (early < full * 0.3f && tail < full * 0.3f && full > 0.05f, "fade in / fade out shape the clip");
     }
     std::printf ("\n%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;
