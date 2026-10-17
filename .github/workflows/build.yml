@@ -1,0 +1,74 @@
+name: Build JAJA Studio for Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  ELECTRON_VERSION: 33.4.11
+
+jobs:
+  engine-test:
+    name: Engine unit test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run the engine test
+        run: |
+          cmake -S engine/tests -B build-test -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-test --parallel
+          ./build-test/EngineTest_artefacts/Release/EngineTest
+
+  windows:
+    name: Windows app (Electron + JAJA Engine)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache JUCE download
+        uses: actions/cache@v4
+        with:
+          path: engine/build/_deps
+          key: juce-9.0.4-${{ runner.os }}-v1
+
+      - name: Build JAJAEngine.exe (ASIO + VST3)
+        run: |
+          cmake -S engine -B engine/build -G "Visual Studio 17 2022" -A x64
+          cmake --build engine/build --config Release --parallel
+
+      - name: Download Electron and check its checksum
+        shell: pwsh
+        run: |
+          $v = $env:ELECTRON_VERSION
+          $zip = "electron-v$v-win32-x64.zip"
+          Invoke-WebRequest "https://github.com/electron/electron/releases/download/v$v/$zip" -OutFile $zip
+          Invoke-WebRequest "https://github.com/electron/electron/releases/download/v$v/SHASUMS256.txt" -OutFile SHASUMS256.txt
+          $want = (Select-String -Path SHASUMS256.txt -Pattern ([regex]::Escape($zip) + '$')).Line.Split(' ')[0].ToLower()
+          $got = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($want -ne $got) { throw "Electron checksum mismatch: $got vs $want" }
+          Write-Host "Electron $v checksum OK ($got)"
+          Invoke-WebRequest "https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe" -OutFile rcedit.exe
+
+      - name: Package JAJA Studio
+        shell: pwsh
+        run: |
+          $out = "dist/JAJA Studio"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Expand-Archive "electron-v$env:ELECTRON_VERSION-win32-x64.zip" -DestinationPath $out
+          Rename-Item "$out/electron.exe" "JAJA Studio.exe"
+          Remove-Item "$out/resources/default_app.asar" -ErrorAction SilentlyContinue
+          Get-ChildItem "$out/locales" | Where-Object { $_.Name -notin @("en-US.pak", "th.pak") } | Remove-Item
+          New-Item -ItemType Directory -Force -Path "$out/resources/app", "$out/resources/engine" | Out-Null
+          Copy-Item app/* "$out/resources/app/" -Recurse
+          Copy-Item engine/build/JAJAEngine_artefacts/Release/JAJAEngine.exe "$out/resources/engine/"
+          Copy-Item "docs/README - วิธีเปิด.txt" "$out/"
+          ./rcedit.exe "$out/JAJA Studio.exe" --set-icon app/icon.ico --set-version-string "ProductName" "JAJA Studio" --set-version-string "FileDescription" "JAJA Studio" --set-version-string "CompanyName" "JAJA" --set-file-version "1.2.0" --set-product-version "1.2.0"
+          Get-ChildItem -Recurse $out | Measure-Object -Property Length -Sum | ForEach-Object { "Total size: {0:N1} MB" -f ($_.Sum / 1MB) }
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: JAJA-Studio-Windows-v1.2
+          path: dist/
+          retention-days: 30

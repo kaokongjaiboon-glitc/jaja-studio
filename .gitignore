@@ -1,0 +1,4 @@
+engine/build/
+build-test/
+dist/
+*.zip
