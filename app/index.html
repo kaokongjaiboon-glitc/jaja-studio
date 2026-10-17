@@ -51,6 +51,21 @@ button { cursor: pointer; }
 .ms.rec.on { background: linear-gradient(#ff6b6b, #c22b2b); color: #fff; }
 .ms.mon.on { background: linear-gradient(#ffb15c, #d9771a); color: #2a1503; }
 
+/* menu bar (like the Logic Pro menu bar) */
+.menubar { position: relative; z-index: 6; display: flex; align-items: center; gap: 2px; height: 26px; padding: 0 8px; background: linear-gradient(#323336, #28292c); border-bottom: 1px solid #111214; font-size: 12.5px; color: #e4e6ea; user-select: none; }
+.mb-brand { font-weight: 700; padding: 0 10px 0 4px; letter-spacing: .01em; }
+.mb-items { display: flex; align-items: center; height: 100%; }
+.mb-items > button { height: 22px; padding: 0 9px; border: 0; border-radius: 5px; background: transparent; color: inherit; font-size: 12.5px; }
+.mb-items > button:hover, .mb-items > button.open { background: #3c5f8f; color: #fff; }
+.mb-title { flex: 1; text-align: center; color: var(--fg-2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding: 0 12px; }
+.mb-status { font: 11px var(--mono); color: var(--fg-3); white-space: nowrap; }
+.mb-status b { color: #8fd19e; font-weight: 500; }
+.menu-pop .chk { width: 16px; flex: none; color: #9fd0ff; }
+.menu-pop button:disabled { opacity: .4; background: transparent; cursor: default; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 12.5px; max-height: 60vh; overflow-y: auto; }
+.keys kbd { font: 11.5px var(--mono); color: var(--lcd); background: #17181b; border: 1px solid #0c0d0f; border-radius: 4px; padding: 1px 6px; justify-self: start; }
+@media (max-width: 760px) { .mb-title, .mb-status { display: none; } .mb-brand { display: none; } .mb-items { overflow-x: auto; } }
+
 /* control bar (Logic-style: views left, transport + LCD centre, tools right) */
 .ctrl { position: relative; z-index: 5; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 6px 10px; background: linear-gradient(#4c4e52, #3b3d41 60%, #343639); border-bottom: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.55); }
 .cb-left, .cb-right, .cb-center { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -220,6 +235,12 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 </style>
 
 <div id="app">
+  <nav class="menubar" id="menubar" aria-label="เมนู">
+    <span class="mb-brand">JAJA Studio</span>
+    <span class="mb-items" id="mbItems" role="menubar"></span>
+    <span class="mb-title" id="mbTitle"></span>
+    <span class="mb-status" id="mbStatus"></span>
+  </nav>
   <header class="ctrl">
     <div class="cb-left">
       <button class="logo" id="bMenu" title="เมนูไฟล์ (เปิด / บันทึก / นำเข้า / ส่งออก)" aria-label="เมนูไฟล์" aria-haspopup="menu"><svg width="20" height="16" viewBox="0 0 20 16"><text x="0" y="14" font-family="IBM Plex Sans, sans-serif" font-weight="700" font-size="16" fill="#e8b84a">J</text><g fill="#e8b84a"><rect x="9" y="6" width="2" height="4" rx="1"/><rect x="12.3" y="3" width="2" height="10" rx="1"/><rect x="15.6" y="1" width="2" height="14" rx="1"/></g></svg></button>
@@ -357,6 +378,13 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   </div>
   <label class="chk"><input type="checkbox" id="bFill" checked> ใส่ fill กลองท้ายทุก 4 บาร์</label>
   <div class="acts"><button class="btn" value="cancel">ยกเลิก</button><button class="btn primary" value="ok">สร้างบีต</button></div>
+</form></dialog>
+
+<dialog id="dlgHelp" style="width:min(560px, calc(100vw - 32px))"><form method="dialog" class="dlg">
+  <h2>คีย์ลัด JAJA Studio</h2>
+  <div class="keys" id="helpKeys"></div>
+  <p id="helpVer"></p>
+  <div class="acts"><button class="btn primary" value="ok">ปิด</button></div>
 </form></dialog>
 
 <dialog id="dlgFx" style="width:min(520px, calc(100vw - 32px))"><div class="dlg">
@@ -1766,6 +1794,135 @@ function setTab(tab) {
   $("#paneMixer").hidden = tab !== "mixer"; $("#paneRoll").hidden = tab !== "roll"; $("#rollTools").hidden = tab !== "roll";
   renderRoll(); syncViewBtns();
 }
+/* menu bar: File Edit Track Navigate Record Mix View Window Help */
+const selTrack = () => trackById(ui.trackId);
+const MENUS = () => ({
+  File: [
+    ["โปรเจกต์ใหม่", "Ctrl+N", newProject],
+    ["เปิดโปรเจกต์…", "Ctrl+O", () => $("#fileProj").click()],
+    ["บันทึกโปรเจกต์", "Ctrl+S", () => saveProject()],
+    "-",
+    ["นำเข้าไฟล์เสียง…", "Ctrl+I", () => $("#fileAudio").click()],
+    ["Bounce ส่งออกเป็น WAV…", "Ctrl+B", () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message))],
+    "-",
+    ["Audio Setup…", "", openSetup],
+  ],
+  Edit: [
+    ["Undo ย้อนกลับ", "Ctrl+Z", undo, () => H.undo.length],
+    ["Redo ทำซ้ำ", "Ctrl+Shift+Z", redo, () => H.redo.length],
+    "-",
+    ["Cut ตัด", "Ctrl+X", () => copyRegions(true), () => ui.sel.size],
+    ["Copy คัดลอก", "Ctrl+C", () => copyRegions(false), () => ui.sel.size],
+    ["Paste วางที่หัวเล่น", "Ctrl+V", pasteRegions, () => !!ui.clip],
+    ["Duplicate ทำซ้ำต่อท้าย", "Ctrl+D", duplicateRegions, () => ui.sel.size],
+    ["Delete ลบ", "Del", deleteRegions, () => ui.sel.size],
+    "-",
+    ["Split ตัดที่หัวเล่น", "Ctrl+T", splitAtPlayhead, () => ui.sel.size],
+    ["Select All เลือกทั้งหมด", "Ctrl+A", () => { ui.sel = new Set(P.tracks.flatMap((t) => t.regions.map((r) => r.id))); ui.regionId = [...ui.sel].pop() || null; render(); }],
+    ["Quantize จัดโน้ตให้ตรงจังหวะ", "Q", quantizeSelected],
+  ],
+  Track: [
+    ["New Software Instrument (Synth)", "", () => addTrack("synth")],
+    ["New Drums", "", () => addTrack("drums")],
+    ["New Audio Track", "", () => addTrack("audio")],
+    "-",
+    ["Mute แทร็กที่เลือก", "", () => { const t = selTrack(); mark(); t.mute = !t.mute; applyMix(); render(); autosave(); }, selTrack, () => selTrack()?.mute],
+    ["Solo แทร็กที่เลือก", "", () => { const t = selTrack(); mark(); t.solo = !t.solo; applyMix(); render(); autosave(); }, selTrack, () => selTrack()?.solo],
+    ["Record Enable (R ที่แทร็ก)", "", () => { const t = selTrack(); t.arm = !t.arm; render(); autosave(); }, () => selTrack()?.kind === "audio", () => selTrack()?.arm],
+    ["แสดงเส้น Automation", "", () => { const t = selTrack(); t.auto.show = !t.auto.show; render(); autosave(); }, selTrack, () => selTrack()?.auto.show],
+    "-",
+    ["ลบแทร็กที่เลือก", "", () => deleteTrack(ui.trackId), selTrack],
+  ],
+  Navigate: [
+    ["Play / Stop เล่น / หยุด", "Space", togglePlay],
+    ["Go to Beginning ไปต้นเพลง", "Enter", () => seek(P.loop.on ? P.loop.start : 0)],
+    "-",
+    ["Cycle วนเล่น", "C", () => $("#bCycle").click(), null, () => P.loop.on],
+    "-",
+    ["Zoom In ซูมเข้า", "", () => $("#zIn").click()],
+    ["Zoom Out ซูมออก", "", () => $("#zOut").click()],
+  ],
+  Record: [
+    ["Record อัด", "R", toggleRecord],
+    "-",
+    ["Count-in นับ 1 บาร์ก่อนอัด", "", () => $("#bCount").click(), null, () => !!P.countIn],
+    ["Metronome เครื่องเคาะ", "K", () => $("#bMetro").click(), null, () => !!P.metro],
+    ["Musical Typing คีย์บอร์ดคอม", "Ctrl+K", () => setTyping(!ui.typing), null, () => ui.typing],
+    "-",
+    ["ชดเชยเวลาอัด / เลือก Input…", "", openSetup],
+  ],
+  Mix: [
+    ["Mixer", "X", () => showPane("mixer"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "mixer"],
+    "-",
+    ["ยกเลิก Mute ทุกแทร็ก", "", () => { mark(); P.tracks.forEach((t) => (t.mute = false)); applyMix(); render(); autosave(); }],
+    ["ยกเลิก Solo ทุกแทร็ก", "", () => { mark(); P.tracks.forEach((t) => (t.solo = false)); applyMix(); render(); autosave(); }],
+    "-",
+    ["Bounce ส่งออกเป็น WAV…", "Ctrl+B", () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message))],
+  ],
+  View: [
+    ["Inspector", "I", toggleInspector, null, () => !document.body.classList.contains("no-inspector")],
+    ["Mixer", "X", () => showPane("mixer"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "mixer"],
+    ["Piano Roll", "P", () => showPane("roll"), null, () => !document.body.classList.contains("no-bottom") && ui.tab === "roll"],
+  ],
+  Window: [
+    ["Chord Pad ช่วยคิดคอร์ด", "", openChord],
+    ["Beat สร้างจังหวะกลอง", "", openBeat],
+    ["Audio Setup", "", openSetup],
+  ],
+  Help: [
+    ["คีย์ลัดทั้งหมด", "", openHelp],
+    ["เกี่ยวกับ JAJA Studio", "", () => toast(`JAJA Studio ${VERSION} · ระบบเสียง: ${ENG.on ? "JAJA Engine (ASIO/VST3)" : "มาตรฐาน (Windows Audio)"}`, 5000)],
+  ],
+});
+let mbOpen = null;
+function closeMenubar() { $("#mbDrop")?.remove(); document.querySelectorAll(".mb-items > button.open").forEach((b) => b.classList.remove("open")); mbOpen = null; }
+function openMenubar(name, btn) {
+  closeMenubar(); closeMenu(); toggleFileMenu(false);
+  mbOpen = name; btn.classList.add("open");
+  const drop = h("div", { class: "menu-pop", id: "mbDrop", role: "menu", style: "min-width:250px;z-index:90" });
+  for (const it of MENUS()[name]) {
+    if (it === "-") { drop.append(h("hr")); continue; }
+    const [label, key, fn, enabled, checked] = it;
+    const on = checked ? !!checked() : null, ok = enabled ? !!enabled() : true;
+    drop.append(h("button", { role: checked ? "menuitemcheckbox" : "menuitem", "aria-checked": checked ? String(on) : null, disabled: !ok, onclick: () => { closeMenubar(); fn(); } },
+      h("span", { class: "chk" }, on ? "✓" : ""), label, key ? h("kbd", {}, key) : null));
+  }
+  document.body.append(drop);
+  const r = btn.getBoundingClientRect();
+  drop.style.left = clamp(r.left, 4, window.innerWidth - drop.offsetWidth - 4) + "px"; drop.style.top = r.bottom + 2 + "px";
+}
+function buildMenubar() {
+  const box = $("#mbItems");
+  for (const name of Object.keys(MENUS())) {
+    const b = h("button", { role: "menuitem", "aria-haspopup": "menu", onclick: (e) => { e.stopPropagation(); mbOpen === name ? closeMenubar() : openMenubar(name, b); } }, name);
+    b.addEventListener("pointerenter", () => { if (mbOpen && mbOpen !== name) openMenubar(name, b); });
+    box.append(b);
+  }
+  document.addEventListener("pointerdown", (e) => { if (mbOpen && !e.target.closest("#mbDrop, #mbItems")) closeMenubar(); });
+}
+function updateMenubar() {
+  const t = `${P.name || "เพลงใหม่"} — Tracks`;
+  if ($("#mbTitle").textContent !== t) $("#mbTitle").textContent = t;
+  const cur = ENG.on ? ENG.dev?.current : null;
+  const st = ENG.on ? `<b>●</b> ${cur ? cur.type + " · " + cur.sampleRate / 1000 + " kHz · " + cur.bufferSize : "JAJA Engine"}` : `Web Audio${ctx ? " · " + ctx.sampleRate / 1000 + " kHz" : ""}`;
+  if ($("#mbStatus").innerHTML !== st) $("#mbStatus").innerHTML = st;
+}
+function newProject() {
+  if (T.playing) stop();
+  mark();
+  P = migrate({ name: "เพลงใหม่", bpm: 96, key: "C maj", loop: { on: false, start: 0, end: 16 }, tracks: [] });
+  ui.trackId = null; ui.regionId = null; ui.sel.clear(); T.cursor = 0;
+  rebuildMix(); loadProjectUi(); render(); autosave();
+  toast("เริ่มโปรเจกต์ใหม่แล้ว (Ctrl+Z เพื่อย้อนกลับ)");
+}
+const HELP_KEYS = [["Space", "เล่น / หยุด"], ["Enter", "ไปต้นเพลง"], ["R", "อัด"], ["C", "Cycle วนเล่น"], ["K", "Metronome"], ["I", "Inspector"], ["X", "Mixer"], ["P", "Piano Roll"], ["Q", "Quantize"],
+  ["Ctrl+Z / Ctrl+Shift+Z", "Undo / Redo"], ["Ctrl+C / X / V", "คัดลอก / ตัด / วาง"], ["Ctrl+D", "ทำซ้ำ region"], ["Ctrl+T", "ตัดที่หัวเล่น"], ["Ctrl+A", "เลือกทั้งหมด"], ["Delete", "ลบ"],
+  ["Ctrl+K", "Musical Typing (Z/X = อ็อกเทฟ)"], ["Ctrl+N", "โปรเจกต์ใหม่"], ["Ctrl+O", "เปิดโปรเจกต์"], ["Ctrl+S", "บันทึก"], ["Ctrl+I", "นำเข้าเสียง"], ["Ctrl+B", "Bounce ส่งออก WAV"]];
+function openHelp() {
+  $("#helpKeys").replaceChildren(...HELP_KEYS.flatMap(([k, d]) => [h("kbd", {}, k), h("span", {}, d)]));
+  $("#helpVer").textContent = "JAJA Studio " + VERSION;
+  $("#dlgHelp").showModal();
+}
 /* Logic-style view buttons: I = Inspector, X = Mixer, P = Piano Roll (press again to hide the pane) */
 function syncViewBtns() {
   const b = document.body.classList, shown = !b.contains("no-bottom");
@@ -1900,6 +2057,7 @@ function frame() {
     document.querySelectorAll("[data-led]").forEach((el) => { const L = levels[el.dataset.led] || 0; el.style.background = L > 0.05 ? "radial-gradient(circle at 35% 30%, #b8ffcb, #2fb35f)" : "#3a3b3f"; el.style.boxShadow = L > 0.05 ? "0 0 5px rgba(70,195,107,.8)" : "none"; });
   }
   if ($("#dlgSetup").open) drawInputMeters();
+  updateMenubar();
   requestAnimationFrame(frame);
 }
 
@@ -2101,6 +2259,7 @@ function boot() {
   document.body.classList.toggle("no-inspector", view.ins === false); document.body.classList.toggle("no-bottom", view.bottom === false);
   loadProjectUi(); render(); setTab(view.tab === "roll" ? "roll" : "mixer"); requestAnimationFrame(frame); wireSetup();
   $("#vInspector").onclick = toggleInspector; $("#vMixer").onclick = () => showPane("mixer"); $("#vRoll").onclick = () => showPane("roll");
+  buildMenubar();
   document.body.append($("#fileMenu"));   // outside the header so it floats above the arrange area
   $("#bMenu").onclick = (e) => { e.stopPropagation(); toggleFileMenu(); };
   $("#fileMenu").addEventListener("click", () => toggleFileMenu(false));
@@ -2154,6 +2313,9 @@ function boot() {
     if (mod && k === "k") { e.preventDefault(); setTyping(!ui.typing); return; }
     if (mod && k === "s") { e.preventDefault(); saveProject(); return; }
     if (mod && k === "o") { e.preventDefault(); $("#fileProj").click(); return; }
+    if (mod && k === "n") { e.preventDefault(); newProject(); return; }
+    if (mod && k === "b") { e.preventDefault(); exportMix().catch((er) => toast("ส่งออกไม่สำเร็จ: " + er.message)); return; }
+    if (mod && !e.shiftKey && k === "i") { e.preventDefault(); $("#fileAudio").click(); return; }
     if (mod && k === "c") { copyRegions(false); return; }
     if (mod && k === "x") { copyRegions(true); return; }
     if (mod && k === "v") { pasteRegions(); return; }
@@ -2178,7 +2340,7 @@ function boot() {
     else if (k === "x" && !mod) showPane("mixer");
     else if (k === "p" && !mod) showPane("roll");
     else if (k === "i" && !mod) toggleInspector();
-    else if (e.key === "Escape") toggleFileMenu(false);
+    else if (e.key === "Escape") { toggleFileMenu(false); closeMenubar(); }
   });
   initMidi();
   if (ENG.api) {
