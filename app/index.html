@@ -114,6 +114,13 @@ body.no-bottom .bottom { display: none; }
 .inspector { flex: 0 0 180px; display: flex; flex-direction: column; gap: 8px; padding: 10px 8px; background: linear-gradient(90deg, #252629, #2c2d30); border-right: 1px solid var(--line); overflow-y: auto; }
 .ins-h { font: 600 10.5px/1 var(--font); letter-spacing: .09em; text-transform: uppercase; color: var(--fg-2); }
 .ins-box { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 7px; background: linear-gradient(#1f2023, #26272b); box-shadow: inset 0 1px 3px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.05); }
+.ins-sec { display: flex; align-items: center; gap: 6px; width: 100%; height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: linear-gradient(#34363a, #2a2b2f); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.5); color: var(--fg); font: 600 11.5px/1 var(--font); text-align: left; }
+.ins-sec:hover { background: linear-gradient(#3b3d42, #2f3034); }
+.ins-sec .tri { width: 10px; flex: none; color: var(--fg-2); transition: transform .12s; }
+.ins-sec[aria-expanded="true"] .tri { transform: rotate(90deg); }
+.ins-sec .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ins-sec .sub { color: var(--fg-3); font-weight: 400; font-size: 10.5px; white-space: nowrap; }
+.ins-box[hidden] { display: none; }
 .ins-box label { display: flex; flex-direction: column; gap: 3px; color: var(--fg-2); font-size: 11px; }
 .field { height: 26px; border-radius: 5px; border: 1px solid #101113; background: #17181b; padding: 0 6px; color: var(--fg); }
 .kv { display: flex; justify-content: space-between; color: var(--fg-2); font-size: 11.5px; }
@@ -1334,6 +1341,17 @@ function lightSelect(trackId, regionId, add) {
 }
 function render() { renderArrange(); renderInspector(); renderMixer(); renderRoll(); draw(); updateUndoBtns(); }
 
+/* collapsible inspector sections (like the disclosure triangles in Logic's inspector); closed by default */
+const INS_OPEN = (() => { try { return JSON.parse(lsGet("jaja-studio-ins") || "{}"); } catch (e) { return {}; } })();
+function insSection(key, title, sub, content) {
+  const open = !!INS_OPEN[key];
+  content.hidden = !open;
+  const btn = h("button", { class: "ins-sec", "aria-expanded": String(open), title: open ? "ซ่อน" : "แสดงรายละเอียด", onclick: () => {
+    INS_OPEN[key] = !INS_OPEN[key]; lsSet("jaja-studio-ins", JSON.stringify(INS_OPEN));
+    content.hidden = !INS_OPEN[key]; btn.setAttribute("aria-expanded", String(INS_OPEN[key]));
+  } }, h("span", { class: "tri" }, "▶"), h("span", { class: "nm" }, title), sub ? h("span", { class: "sub" }, sub) : null);
+  return h("div", { style: "display:flex;flex-direction:column;gap:4px" }, btn, content);
+}
 function renderInspector() {
   const box = $("#inspector"); box.replaceChildren(h("span", { class: "ins-h" }, "Inspector"));
   const t = trackById(ui.trackId);
@@ -1362,7 +1380,7 @@ function renderInspector() {
   const colors = h("div", { style: "display:flex;flex-wrap:wrap;gap:4px" });
   for (const c of COLORS) colors.append(h("button", { "aria-label": "สี " + c, style: `width:16px;height:16px;border-radius:4px;border:${c === t.color ? "2px solid #fff" : "1px solid #000"};background:${c};padding:0`, onclick: () => { mark(); t.color = c; render(); autosave(); } }));
   info.append(colors);
-  box.append(info);
+  box.append(insSection("track", t.name, t.kind === "synth" ? (t.vst ? t.vst.name : INSTRUMENTS[t.inst].name) : t.kind === "drums" ? "Drums" : "Audio", info));
   const f = ui.regionId && findRegion(ui.regionId);
   if (f) {
     const r = f.r, rb = h("div", { class: "ins-box" });
@@ -1377,7 +1395,7 @@ function renderInspector() {
       h("button", { class: "btn small", onclick: duplicateRegions }, "ทำซ้ำ"),
       r.notes ? h("button", { class: "btn small", onclick: quantizeSelected }, "Quantize") : null,
       h("button", { class: "btn small", onclick: deleteRegions }, "ลบ")));
-    box.append(rb);
+    box.append(insSection("region", ui.sel.size > 1 ? `Region ×${ui.sel.size}` : "Region: " + r.name, "", rb));
   }
   box.append(stripEl(t, "inspector"));
 }
