@@ -11,9 +11,13 @@ env:
 jobs:
   engine-test:
     name: Engine unit test (Linux)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Install JUCE build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfreetype-dev libfontconfig1-dev libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxext-dev libgl1-mesa-dev libcurl4-openssl-dev
       - name: Build and run the engine test
         run: |
           set -o pipefail
@@ -30,7 +34,7 @@ jobs:
 
   windows:
     name: Windows app (Electron + JAJA Engine)
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
