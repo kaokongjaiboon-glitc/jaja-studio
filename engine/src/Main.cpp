@@ -17,7 +17,7 @@
  static int rawWrite (const char* b, int n)   { return (int) ::write (1, b, (size_t) n); }
 #endif
 
-static const char* engineVersion = "1.3.0";
+static const char* engineVersion = "1.4.0";
 
 //==============================================================================
 static juce::CriticalSection outLock;
@@ -182,8 +182,32 @@ public:
 
 private:
     //==============================================================================
+    void saveChoice (const juce::String& type, const juce::String& output, const juce::String& input)
+    {
+        auto* d = deviceManager.getCurrentAudioDevice();
+        if (d == nullptr) return;
+        auto o = new juce::DynamicObject();
+        o->setProperty ("type", type); o->setProperty ("output", output); o->setProperty ("input", input);
+        o->setProperty ("sampleRate", d->getCurrentSampleRate()); o->setProperty ("bufferSize", d->getCurrentBufferSizeSamples());
+        appDataDir().getChildFile ("engine-choice.json").replaceWithText (juce::JSON::toString (juce::var (o)));
+        if (auto xml = deviceManager.createStateXml()) xml->writeTo (appDataDir().getChildFile ("engine-audio.xml"));
+    }
+
     void openInitialDevice()
     {
+        // 1) the driver/device the user chose last time is re-opened explicitly (never swapped for another driver)
+        auto choice = juce::JSON::parse (appDataDir().getChildFile ("engine-choice.json"));
+        if (choice.isObject() && choice["type"].toString().isNotEmpty())
+        {
+            deviceManager.initialise (64, 2, nullptr, false);   // starts the device-type list without opening anything
+            const auto err = applyDevice (choice["type"].toString(), choice["output"].toString(), choice["input"].toString(),
+                                          (double) choice.getProperty ("sampleRate", 0), (int) choice.getProperty ("bufferSize", 0));
+            if (deviceManager.getCurrentAudioDevice() != nullptr) return;
+            lastError = err;   // stays "wanted" so the Audio Setup window still shows the chosen driver
+            return;
+        }
+
+        // 2) older saved state
         auto saved = juce::parseXML (appDataDir().getChildFile ("engine-audio.xml"));
         const auto err = deviceManager.initialise (64, 2, saved.get(), true);
         if (saved == nullptr || err.isNotEmpty())
@@ -201,36 +225,44 @@ private:
                     break;
                 }
         }
+        else
+        {
+            wantedType = deviceManager.getCurrentAudioDeviceType();
+            wantedOutput = deviceManager.getAudioDeviceSetup().outputDeviceName;
+        }
     }
 
-    // Tries to open a device setup. ASIO drivers such as ASIO4ALL sometimes refuse a setup the first time
-    // (a buffer size they were not configured for), so a failed attempt is retried once after closing the
-    // device, and if it still fails the last setup that worked is restored so the user is never left without audio.
+    // ASIO drivers (ASIO4ALL especially) are single-client and slow to release: a failed open is retried several
+    // times with growing pauses before it is given up.
     juce::String openSetup (juce::AudioDeviceManager::AudioDeviceSetup setup)
     {
-        auto err = deviceManager.setAudioDeviceSetup (setup, true);
-        if (err.isNotEmpty() || deviceManager.getCurrentAudioDevice() == nullptr)
+        juce::String err;
+        for (int i = 0; i < 4; ++i)
         {
-            deviceManager.closeAudioDevice();
-            juce::Thread::sleep (300);
             err = deviceManager.setAudioDeviceSetup (setup, true);
-            if (err.isEmpty() && deviceManager.getCurrentAudioDevice() == nullptr) err = "เปิดอุปกรณ์ไม่ได้";
+            if (err.isEmpty() && deviceManager.getCurrentAudioDevice() != nullptr) return {};
+            if (err.isEmpty()) err = "เปิดอุปกรณ์ไม่ได้";
+            deviceManager.closeAudioDevice();
+            juce::Thread::sleep (300 + 300 * i);
         }
         return err;
     }
 
+    // Opens the requested driver/device. The driver is never swapped: if the exact buffer size is refused, the same
+    // driver is opened with its own preferred size (and a warning is reported); only if that also fails is the
+    // previous working setup restored.
     juce::String applyDevice (const juce::String& type, const juce::String& output, const juce::String& input, double sampleRate, int bufferSize)
     {
-        // remember what worked before, to go back to it if the new setup fails
         std::unique_ptr<juce::XmlElement> before (deviceManager.createStateXml());
         const auto beforeType = deviceManager.getCurrentAudioDeviceType();
         const bool hadDevice = deviceManager.getCurrentAudioDevice() != nullptr;
+        lastWarn = {};
 
         if (type.isNotEmpty() && type != deviceManager.getCurrentAudioDeviceType())
-            deviceManager.setCurrentAudioDeviceType (type, true);
-        wantedType = deviceManager.getCurrentAudioDeviceType();
+            deviceManager.setCurrentAudioDeviceType (type, false);
+        wantedType = type.isNotEmpty() ? type : deviceManager.getCurrentAudioDeviceType();
         auto setup = deviceManager.getAudioDeviceSetup();
-        const bool asio = deviceManager.getCurrentAudioDeviceType() == "ASIO";
+        const bool asio = wantedType == "ASIO";
         if (output.isNotEmpty()) setup.outputDeviceName = output;
         wantedOutput = setup.outputDeviceName;
         setup.inputDeviceName = asio ? setup.outputDeviceName : (input == "-" ? juce::String() : (input.isNotEmpty() ? input : setup.inputDeviceName));
@@ -240,16 +272,24 @@ private:
         setup.useDefaultOutputChannels = false; setup.outputChannels.clear(); setup.outputChannels.setRange (0, 2, true);
 
         auto err = openSetup (setup);
+        if (err.isNotEmpty() && bufferSize > 0)
+        {
+            auto s2 = setup; s2.bufferSize = 0;
+            if (openSetup (s2).isEmpty())
+            {
+                lastWarn = "ไดรเวอร์ไม่รับ buffer " + juce::String (bufferSize) + " — ใช้ค่าของไดรเวอร์แทน (ตั้ง buffer ที่แผงของไดรเวอร์ เช่น ASIO4ALL แล้วเปิดใหม่)";
+                err = {};
+            }
+        }
         if (err.isEmpty())
         {
-            if (auto xml = deviceManager.createStateXml()) xml->writeTo (appDataDir().getChildFile ("engine-audio.xml"));
+            saveChoice (wantedType, wantedOutput, setup.inputDeviceName.isEmpty() ? "-" : setup.inputDeviceName);
             return {};
         }
 
-        // failed: restore the previous working setup (same driver, same device) and report why
         if (hadDevice && before != nullptr)
         {
-            if (beforeType != deviceManager.getCurrentAudioDeviceType()) deviceManager.setCurrentAudioDeviceType (beforeType, true);
+            if (beforeType != deviceManager.getCurrentAudioDeviceType()) deviceManager.setCurrentAudioDeviceType (beforeType, false);
             const auto restoreErr = deviceManager.initialise (64, 2, before.get(), true);
             if (restoreErr.isEmpty() && deviceManager.getCurrentAudioDevice() != nullptr)
             {
@@ -266,7 +306,8 @@ private:
         juce::Array<juce::var> types;
         for (auto* type : deviceManager.getAvailableDeviceTypes())
         {
-            type->scanForDevices();
+            if (deviceManager.getCurrentAudioDevice() == nullptr || type->getTypeName() != deviceManager.getCurrentAudioDeviceType())
+                type->scanForDevices();
             juce::Array<juce::var> outs, ins;
             for (auto& n : type->getDeviceNames (false)) outs.add (n);
             for (auto& n : type->getDeviceNames (true)) ins.add (n);
@@ -289,7 +330,7 @@ private:
                          { "inputLatency", d->getInputLatencyInSamples() }, { "outputLatency", d->getOutputLatencyInSamples() },
                          { "hasPanel", d->hasControlPanel() } });
         }
-        return obj ({ { "types", types }, { "current", cur }, { "wantedType", wantedType }, { "wantedOutput", wantedOutput } });
+        return obj ({ { "types", types }, { "current", cur }, { "wantedType", wantedType }, { "wantedOutput", wantedOutput }, { "warn", lastWarn }, { "lastError", lastError } });
     }
 
     juce::var pluginList()
@@ -461,7 +502,7 @@ private:
     };
 
     juce::AudioDeviceManager deviceManager;
-    juce::String wantedType, wantedOutput;   // what the user last asked for (kept even if the device would not open)
+    juce::String wantedType, wantedOutput, lastWarn, lastError;   // what the user last asked for (kept even if the device would not open)
     juce::AudioPluginFormatManager formats;
     juce::KnownPluginList known;
     std::unique_ptr<juce::PluginDirectoryScanner> scanner;
