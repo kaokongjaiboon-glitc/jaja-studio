@@ -51,22 +51,48 @@ button { cursor: pointer; }
 .ms.rec.on { background: linear-gradient(#ff6b6b, #c22b2b); color: #fff; }
 .ms.mon.on { background: linear-gradient(#ffb15c, #d9771a); color: #2a1503; }
 
-/* control bar */
-.ctrl { position: relative; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 12px; background: linear-gradient(#4c4e52, #3b3d41 60%, #343639); border-bottom: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.55); }
-.brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.logo { width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid; place-items: center; background: linear-gradient(#4a4e57, #1c1d21); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 2px 5px rgba(0,0,0,.6); }
-.brand b { font-weight: 700; letter-spacing: .02em; font-size: 14px; }
-.brand input { width: 160px; max-width: 34vw; background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 1px 5px; color: var(--fg-2); font-size: 12px; }
-.brand input:hover, .brand input:focus { border-color: #55585e; background: #1e1f22; }
-.center { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.lcd { display: flex; align-items: stretch; border-radius: 9px; background: linear-gradient(#2b2f35, #17191d); border: 1px solid #000; box-shadow: inset 0 2px 6px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.1); font-family: var(--mono); }
-.lcd > div { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px 12px; border-right: 1px solid #23262b; }
+/* control bar (Logic-style: views left, transport + LCD centre, tools right) */
+.ctrl { position: relative; z-index: 5; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 6px 10px; background: linear-gradient(#4c4e52, #3b3d41 60%, #343639); border-bottom: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.55); }
+.cb-left, .cb-right, .cb-center { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cb-right { justify-content: flex-end; }
+.logo { width: 34px; height: 30px; border-radius: 8px; flex: none; display: grid; place-items: center; padding: 0; border: 1px solid #141518; background: linear-gradient(#4a4e57, #1c1d21); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 2px 5px rgba(0,0,0,.6); }
+.logo:hover, .logo.on { background: linear-gradient(#585c66, #26282d); }
+.vbtn, .tbtn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 24px; min-width: 30px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: #d9dce1; font-size: 11.5px; }
+.vbtn svg, .tbtn svg { width: 16px; height: 16px; flex: none; }
+.vbtn:hover, .tbtn:hover { background: rgba(255,255,255,.08); }
+.vbtn:active, .tbtn:active { background: rgba(0,0,0,.25); }
+.vbtn:disabled { opacity: .35; }
+.vbtn.on { background: linear-gradient(#55585f, #3e4046); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 1px 2px rgba(0,0,0,.5); }
+.views .vbtn.on { color: #9fd0ff; }
+.tbtn { width: 36px; padding: 0; }
+.tbtn.on { background: linear-gradient(#4b6a92, #33506f); color: #fff; box-shadow: inset 0 1px 0 rgba(200,225,255,.3), inset 0 0 8px rgba(90,167,255,.35); }
+.tbtn.cycle.on { background: linear-gradient(#fbe783, #f0cf2c 55%, #c29f12); color: #1d1704; }
+.tbtn.play.on { background: linear-gradient(#3f8f57, #1f5a33); color: #eaffef; box-shadow: 0 0 10px rgba(70,195,107,.45); }
+.tbtn.rec { color: #ff6a70; }
+.tbtn.rec.on { background: linear-gradient(#d0444a, #7d1d22); color: #fff; box-shadow: 0 0 10px rgba(229,72,77,.55); }
+#projName { width: 150px; min-width: 60px; flex: 0 1 auto; height: 24px; background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 0 6px; color: var(--fg-2); font-size: 12px; text-overflow: ellipsis; }
+#projName:hover, #projName:focus { border-color: #55585e; background: #1e1f22; color: var(--fg); }
+.lcd { display: flex; align-items: stretch; height: 38px; border-radius: 8px; background: linear-gradient(#2b2f35, #17191d); border: 1px solid #000; box-shadow: inset 0 2px 6px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.1); font-family: var(--mono); }
+.lcd > div { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 12px; border-right: 1px solid #23262b; }
 .lcd > div:last-child { border-right: 0; }
-.lcd .v { font-size: 19px; font-weight: 600; color: var(--lcd); line-height: 1.15; text-shadow: 0 0 6px rgba(200,225,255,.3); font-variant-numeric: tabular-nums; }
-.lcd .k { font-size: 8.5px; letter-spacing: .08em; color: #8791a0; }
-.lcd input { width: 58px; background: transparent; border: 0; text-align: center; font: 600 19px/1.15 var(--mono); color: var(--lcd); padding: 0; }
+.lcd .v { font-size: 18px; font-weight: 600; color: var(--lcd); line-height: 1.1; text-shadow: 0 0 6px rgba(200,225,255,.3); font-variant-numeric: tabular-nums; }
+.lcd .k { font-size: 8px; letter-spacing: .08em; color: #8791a0; }
+.lcd input { width: 54px; background: transparent; border: 0; text-align: center; font: 600 18px/1.1 var(--mono); color: var(--lcd); padding: 0; }
 .lcd input:focus { outline: 1px solid var(--accent); border-radius: 3px; }
-.tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.menu-pop kbd { margin-left: auto; padding-left: 18px; font: 10.5px var(--mono); color: var(--fg-3); }
+.menu-pop button { display: flex; align-items: center; }
+#fileMenu { min-width: 240px; z-index: 80; }
+#fileMenu[hidden] { display: none; }
+body.no-inspector .inspector { display: none; }
+body.no-bottom .bottom { display: none; }
+@media (max-width: 1180px) { .vbtn.wide span, .lcd-key { display: none; } #projName { width: 110px; } }
+@media (max-width: 980px) {
+  .ctrl { grid-template-columns: 1fr auto; }
+  .cb-center { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+  .lcd-time { display: none; }
+  .cb-center { flex-wrap: wrap; row-gap: 6px; }
+}
+@media (max-width: 560px) { .cb-left .grp:nth-of-type(2), #projName { display: none; } .modes .tbtn { width: 30px; } .lcd > div { padding: 0 8px; } }
 
 /* body */
 .body { flex: 1 1 auto; min-height: 0; display: flex; }
@@ -195,49 +221,63 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
 <div id="app">
   <header class="ctrl">
-    <div class="brand">
-      <div class="logo" aria-hidden="true"><svg width="20" height="16" viewBox="0 0 20 16"><text x="0" y="14" font-family="IBM Plex Sans, sans-serif" font-weight="700" font-size="16" fill="#e8b84a">J</text><g fill="#e8b84a"><rect x="9" y="6" width="2" height="4" rx="1"/><rect x="12.3" y="3" width="2" height="10" rx="1"/><rect x="15.6" y="1" width="2" height="14" rx="1"/></g></svg></div>
-      <div style="display:flex;flex-direction:column;min-width:0">
-        <b>JAJA Studio</b>
-        <input id="projName" aria-label="ชื่อเพลง" value="เพลงใหม่">
+    <div class="cb-left">
+      <button class="logo" id="bMenu" title="เมนูไฟล์ (เปิด / บันทึก / นำเข้า / ส่งออก)" aria-label="เมนูไฟล์" aria-haspopup="menu"><svg width="20" height="16" viewBox="0 0 20 16"><text x="0" y="14" font-family="IBM Plex Sans, sans-serif" font-weight="700" font-size="16" fill="#e8b84a">J</text><g fill="#e8b84a"><rect x="9" y="6" width="2" height="4" rx="1"/><rect x="12.3" y="3" width="2" height="10" rx="1"/><rect x="15.6" y="1" width="2" height="14" rx="1"/></g></svg></button>
+      <div class="grp views">
+        <button class="vbtn on" id="vInspector" title="Inspector (I)" aria-label="Inspector" aria-pressed="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5.5 2.5v11"/><circle cx="3.5" cy="5" r=".4" fill="currentColor"/></svg></button>
+        <button class="vbtn on" id="vMixer" title="Mixer (X)" aria-label="Mixer" aria-pressed="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v12M8 2v12M12 2v12"/><rect x="2.5" y="8" width="3" height="2" rx=".5" fill="currentColor"/><rect x="6.5" y="4.5" width="3" height="2" rx=".5" fill="currentColor"/><rect x="10.5" y="10" width="3" height="2" rx=".5" fill="currentColor"/></svg></button>
+        <button class="vbtn" id="vRoll" title="Piano Roll (P)" aria-label="Piano Roll" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 6h4M7 9h5M3.5 11.5h3"/></svg></button>
       </div>
       <div class="grp">
-        <button class="btn icon" id="bUndo" title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3 2 6l3 3M2 6h7.5a4 4 0 0 1 0 8H6"/></svg></button>
-        <button class="btn icon" id="bRedo" title="ทำซ้ำ (Ctrl+Shift+Z)" aria-label="ทำซ้ำ"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 3l3 3-3 3M14 6H6.5a4 4 0 0 0 0 8H10"/></svg></button>
+        <button class="vbtn" id="bUndo" title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 2 6l3 3M2 6h7.5a4 4 0 0 1 0 8H6"/></svg></button>
+        <button class="vbtn" id="bRedo" title="ทำซ้ำ (Ctrl+Shift+Z)" aria-label="ทำซ้ำ"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3l3 3-3 3M14 6H6.5a4 4 0 0 0 0 8H10"/></svg></button>
       </div>
+      <input id="projName" aria-label="ชื่อเพลง" value="เพลงใหม่" title="ชื่อเพลง (คลิกเพื่อแก้)">
     </div>
 
-    <div class="center">
-      <div class="grp">
-        <button class="btn icon" id="bHome" title="กลับไปต้นเพลง (Enter)" aria-label="กลับไปต้นเพลง"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="2.5" y="3" width="2" height="10" rx=".5"/><path d="M13 3 6 8l7 5z"/></svg></button>
-        <button class="btn icon" id="bStop" title="หยุด" aria-label="หยุด"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg></button>
-        <button class="btn icon play" id="bPlay" title="เล่น / หยุด (Space)" aria-label="เล่น"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></button>
-        <button class="btn icon rec" id="bRec" title="อัด (R) แทร็ก Audio = อัดไมค์ แทร็ก Synth/Drums = อัด MIDI" aria-label="อัด"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg></button>
+    <div class="cb-center">
+      <div class="grp transport">
+        <button class="tbtn" id="bHome" title="กลับไปต้นเพลง (Enter)" aria-label="กลับไปต้นเพลง"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="2.5" y="3" width="2" height="10" rx=".5"/><path d="M13 3 6 8l7 5z"/></svg></button>
+        <button class="tbtn" id="bStop" title="หยุด" aria-label="หยุด"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg></button>
+        <button class="tbtn play" id="bPlay" title="เล่น / หยุด (Space)" aria-label="เล่น"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+        <button class="tbtn rec" id="bRec" title="อัด (R)" aria-label="อัด"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg></button>
       </div>
       <div class="lcd" aria-live="off">
         <div><span class="v" id="lcdPos">001.1.1</span><span class="k">BAR&nbsp;BEAT&nbsp;16TH</span></div>
-        <div><span class="v" id="lcdTime">0:00.0</span><span class="k">TIME</span></div>
+        <div class="lcd-time"><span class="v" id="lcdTime">0:00.0</span><span class="k">TIME</span></div>
         <div><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo (BPM)"><span class="k">TEMPO</span></div>
-        <div><span class="v" id="lcdKey" style="font-size:15px">C maj</span><span class="k">KEY&nbsp;·&nbsp;4/4</span></div>
+        <div class="lcd-key"><span class="v" id="lcdKey" style="font-size:15px">C maj</span><span class="k">KEY&nbsp;·&nbsp;4/4</span></div>
       </div>
-      <div class="grp">
-        <button class="btn icon cycle" id="bCycle" title="วนเล่นช่วงสีเหลือง (C)" aria-label="Cycle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9.5V7a3 3 0 0 1 3-3h7M11 2l2 2-2 2M13 6.5V9a3 3 0 0 1-3 3H3M5 14l-2-2 2-2"/></svg></button>
-        <button class="btn icon" id="bCount" title="นับ 1 บาร์ก่อนอัด" aria-label="Count-in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 12V4l2.5 2-2.5 2M8 4h4l-3 4h3M8 12h5"/></svg></button>
-        <button class="btn icon" id="bMetro" title="เครื่องเคาะจังหวะ (K)" aria-label="Metronome"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2h5l2.5 12H3zM8 11l4-7M4.5 9h7"/></svg></button>
-        <button class="btn icon" id="bTyping" title="เล่นโน้ตด้วยคีย์บอร์ดคอม (Ctrl+K)" aria-label="Musical typing"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1.5"/><path d="M4 7h1M7 7h1M10 7h1M5 9.5h6"/></svg></button>
+      <div class="grp modes">
+        <button class="tbtn cycle" id="bCycle" title="Cycle วนเล่นช่วงสีเหลือง (C)" aria-label="Cycle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9.5V7a3 3 0 0 1 3-3h7M11 2l2 2-2 2M13 6.5V9a3 3 0 0 1-3 3H3M5 14l-2-2 2-2"/></svg></button>
+        <button class="tbtn" id="bCount" title="Count-in นับ 1 บาร์ก่อนอัด" aria-label="Count-in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12V4l2.5 2-2.5 2M8 4h4l-3 4h3M8 12h5"/></svg></button>
+        <button class="tbtn" id="bMetro" title="Metronome เครื่องเคาะจังหวะ (K)" aria-label="Metronome"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2h5l2.5 12H3zM8 11l4-7M4.5 9h7"/></svg></button>
+        <button class="tbtn" id="bTyping" title="Musical Typing เล่นโน้ตด้วยคีย์บอร์ดคอม (Ctrl+K)" aria-label="Musical typing"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1.5"/><path d="M4 7h1M7 7h1M10 7h1M5 9.5h6"/></svg></button>
       </div>
     </div>
 
-    <div class="tools">
-      <button class="btn" id="bChord" title="ช่วยคิดคอร์ด"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="6" cy="8" r="2"/><circle cx="6" cy="4" r="2"/><rect x="7.4" y="2" width="1.3" height="10.5"/></svg>Chord Pad</button>
-      <button class="btn" id="bBeat" title="สร้างจังหวะกลอง"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Beat</button>
-      <button class="btn" id="bImport" title="นำเข้าไฟล์เสียง (WAV, MP3)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>นำเข้าเสียง</button>
-      <button class="btn" id="bExport" title="ส่งออกเพลงเป็น WAV"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 10V2M4.5 5.5 8 2l3.5 3.5M2.5 13.5h11"/></svg>Export</button>
-      <button class="btn" id="bSave" title="บันทึกโปรเจกต์เป็นไฟล์ (Ctrl+S)">บันทึก</button>
-      <button class="btn" id="bOpen" title="เปิดโปรเจกต์">เปิด</button>
-      <button class="btn icon" id="bSetup" title="ตั้งค่าเสียง / Audio Interface" aria-label="Audio Setup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></button>
+    <div class="cb-right">
+      <div class="grp">
+        <button class="vbtn wide" id="bChord" title="Chord Pad ช่วยคิดคอร์ด"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="6" cy="8" r="2"/><circle cx="6" cy="4" r="2"/><rect x="7.4" y="2" width="1.3" height="10.5"/></svg><span>Chord</span></button>
+        <button class="vbtn wide" id="bBeat" title="Beat สร้างจังหวะกลอง"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg><span>Beat</span></button>
+      </div>
+      <div class="grp">
+        <button class="vbtn" id="bImport" title="นำเข้าไฟล์เสียง (WAV, MP3)" aria-label="นำเข้าเสียง"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg></button>
+        <button class="vbtn" id="bExport" title="Export ส่งออกเพลงเป็น WAV" aria-label="Export"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M4.5 5.5 8 2l3.5 3.5M2.5 13.5h11"/></svg></button>
+        <button class="vbtn" id="bSetup" title="Audio Setup ตั้งค่าเสียง / Audio Interface" aria-label="Audio Setup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></button>
+      </div>
       <input type="file" id="fileAudio" accept="audio/*" multiple hidden>
       <input type="file" id="fileProj" accept=".zip,.json" hidden>
+    </div>
+    <div class="menu-pop" id="fileMenu" role="menu" hidden>
+      <div class="mlabel">JAJA Studio</div>
+      <button role="menuitem" id="bOpen">เปิดโปรเจกต์…<kbd>Ctrl+O</kbd></button>
+      <button role="menuitem" id="bSave">บันทึกโปรเจกต์<kbd>Ctrl+S</kbd></button>
+      <hr>
+      <button role="menuitem" id="mImport">นำเข้าไฟล์เสียง…</button>
+      <button role="menuitem" id="mExport">ส่งออกเป็น WAV (Bounce)</button>
+      <hr>
+      <button role="menuitem" id="mSetup">Audio Setup…</button>
     </div>
   </header>
 
@@ -1724,7 +1764,26 @@ function setTab(tab) {
   ui.tab = tab;
   $("#tabMixer").classList.toggle("on", tab === "mixer"); $("#tabRoll").classList.toggle("on", tab === "roll");
   $("#paneMixer").hidden = tab !== "mixer"; $("#paneRoll").hidden = tab !== "roll"; $("#rollTools").hidden = tab !== "roll";
-  renderRoll();
+  renderRoll(); syncViewBtns();
+}
+/* Logic-style view buttons: I = Inspector, X = Mixer, P = Piano Roll (press again to hide the pane) */
+function syncViewBtns() {
+  const b = document.body.classList, shown = !b.contains("no-bottom");
+  const set = (id, on) => { const el = $(id); if (el) { el.classList.toggle("on", on); el.setAttribute("aria-pressed", on ? "true" : "false"); } };
+  set("#vInspector", !b.contains("no-inspector")); set("#vMixer", shown && ui.tab === "mixer"); set("#vRoll", shown && ui.tab === "roll");
+  lsSet("jaja-studio-view", JSON.stringify({ ins: !b.contains("no-inspector"), bottom: shown, tab: ui.tab }));
+}
+function showPane(kind) {
+  const b = document.body.classList;
+  if (!b.contains("no-bottom") && ui.tab === kind) b.add("no-bottom");
+  else { b.remove("no-bottom"); setTab(kind); }
+  syncViewBtns();
+}
+function toggleInspector() { document.body.classList.toggle("no-inspector"); syncViewBtns(); }
+function toggleFileMenu(force) {
+  const m = $("#fileMenu"), open = force ?? m.hidden;
+  m.hidden = !open; $("#bMenu").classList.toggle("on", open);
+  if (open) { const r = $("#bMenu").getBoundingClientRect(); m.style.left = r.left + "px"; m.style.top = r.bottom + 6 + "px"; }
 }
 const PR = { lo: 24, hi: 96, rowH: 13, velH: 64 };
 const rollRows = (t) => (t.kind === "drums" ? DRUMS.map((d) => d.p) : Array.from({ length: PR.hi - PR.lo + 1 }, (_, i) => PR.hi - i));
@@ -2038,7 +2097,17 @@ function setTyping(on) { ui.typing = on; $("#bTyping").classList.toggle("on", on
 function boot() {
   if (!loadAutosave()) demoProject();
   ui.trackId = ui.trackId || P.tracks[0]?.id || null;
-  loadProjectUi(); render(); setTab("mixer"); requestAnimationFrame(frame); wireSetup();
+  let view = {}; try { view = JSON.parse(lsGet("jaja-studio-view") || "{}"); } catch (e) {}
+  document.body.classList.toggle("no-inspector", view.ins === false); document.body.classList.toggle("no-bottom", view.bottom === false);
+  loadProjectUi(); render(); setTab(view.tab === "roll" ? "roll" : "mixer"); requestAnimationFrame(frame); wireSetup();
+  $("#vInspector").onclick = toggleInspector; $("#vMixer").onclick = () => showPane("mixer"); $("#vRoll").onclick = () => showPane("roll");
+  document.body.append($("#fileMenu"));   // outside the header so it floats above the arrange area
+  $("#bMenu").onclick = (e) => { e.stopPropagation(); toggleFileMenu(); };
+  $("#fileMenu").addEventListener("click", () => toggleFileMenu(false));
+  document.addEventListener("pointerdown", (e) => { if (!$("#fileMenu").hidden && !e.target.closest("#fileMenu, #bMenu")) toggleFileMenu(false); });
+  $("#mImport").onclick = () => $("#fileAudio").click();
+  $("#mExport").onclick = () => exportMix().catch((e) => toast("ส่งออกไม่สำเร็จ: " + e.message));
+  $("#mSetup").onclick = openSetup;
   $("#bPlay").onclick = togglePlay; $("#bStop").onclick = stop; $("#bHome").onclick = () => seek(0); $("#bRec").onclick = toggleRecord;
   $("#bUndo").onclick = undo; $("#bRedo").onclick = redo;
   $("#bCycle").onclick = () => { P.loop.on = !P.loop.on; updateLoopBand(); autosave(); };
@@ -2084,6 +2153,7 @@ function boot() {
     if (mod && k === "y") { e.preventDefault(); redo(); return; }
     if (mod && k === "k") { e.preventDefault(); setTyping(!ui.typing); return; }
     if (mod && k === "s") { e.preventDefault(); saveProject(); return; }
+    if (mod && k === "o") { e.preventDefault(); $("#fileProj").click(); return; }
     if (mod && k === "c") { copyRegions(false); return; }
     if (mod && k === "x") { copyRegions(true); return; }
     if (mod && k === "v") { pasteRegions(); return; }
@@ -2105,6 +2175,10 @@ function boot() {
     else if (k === "k" && !mod) $("#bMetro").click();
     else if (k === "r" && !mod) toggleRecord();
     else if (k === "q" && !mod) quantizeSelected();
+    else if (k === "x" && !mod) showPane("mixer");
+    else if (k === "p" && !mod) showPane("roll");
+    else if (k === "i" && !mod) toggleInspector();
+    else if (e.key === "Escape") toggleFileMenu(false);
   });
   initMidi();
   if (ENG.api) {
